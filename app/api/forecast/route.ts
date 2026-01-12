@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server'
 import { ForecastingEngine } from '@/lib/forecasting-engine'
 import { DataLoader } from '@/lib/data-loader'
 
-export const runtime = 'edge'
 
 export async function POST(request: NextRequest) {
   try {

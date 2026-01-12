@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
     }
     
     // Check for API key - Vercel environment variable
-    const apiKey = process.env.ANTHROPIC_API_KEY
+   const apiKey = process.env.ANTHROPIC_API_KEY
     
     // Load demo data
     const demoData = DataLoader.loadDemoData()

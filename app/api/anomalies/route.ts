@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server'
 import { AnomalyDetector } from '@/lib/anomaly-detector'
 import { DataLoader } from '@/lib/data-loader'
 
-export const runtime = 'edge'
 
 export async function GET(request: NextRequest) {
   try {

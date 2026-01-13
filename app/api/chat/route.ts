@@ -3,8 +3,7 @@ import { AIAgent } from '@/lib/ai-agent'
 import { DataLoader } from '@/lib/data-loader'
 import { ConversationMessage, MerchantMetrics } from '@/lib/types'
 
-// Remove edge runtime - use Node.js runtime for env variables
-// export const runtime = 'edge'
+// NO EDGE RUNTIME - Use Node.js runtime for environment variables
 
 export async function POST(request: NextRequest) {
   try {
@@ -17,8 +16,13 @@ export async function POST(request: NextRequest) {
       )
     }
     
-    // Check for API key - Vercel environment variable
-   const apiKey = process.env.ANTHROPIC_API_KEY
+    // Check for API key
+    const apiKey = process.env.ANTHROPIC_API_KEY
+    
+    console.log('=== API KEY CHECK ===')
+    console.log('Key exists:', !!apiKey)
+    console.log('Key length:', apiKey?.length || 0)
+    console.log('====================')
     
     // Load demo data
     const demoData = DataLoader.loadDemoData()
@@ -74,6 +78,7 @@ export async function POST(request: NextRequest) {
       }
       
       // Process query with AI
+      console.log('Calling Claude API...')
       const response = await agent.processQuery(
         query,
         context,
@@ -81,6 +86,8 @@ export async function POST(request: NextRequest) {
         demoData.competitors,
         historicalData
       )
+      
+      console.log('Claude API response received')
       
       return NextResponse.json({
         success: true,
@@ -134,7 +141,7 @@ function generateFallbackResponse(query: string, data: any) {
   const formatNumber = (num: number) => num.toLocaleString()
   
   // Insights
-  if (q.includes('insight') || q.includes('what') && q.includes('top')) {
+  if (q.includes('insight') || (q.includes('what') && q.includes('top'))) {
     return {
       message: `I've analyzed your campaign data. Here are your top insights:
 
@@ -150,49 +157,11 @@ You're #5 out of ${competitors.length} active merchants with ${formatNumber(carr
 Your ROI is ${((carrefour.revenue - carrefour.cashback_paid) / carrefour.cashback_paid).toFixed(2)}x - in the healthy range of 2-4x.
 → Recommendation: Maintain current strategy while testing optimization
 
-*Note: Add ANTHROPIC_API_KEY for real-time AI analysis with deeper insights*`,
+*Note: This is using fallback mode. API key may not be configured correctly.*`,
       followups: [
         'Compare me to Lidl in detail',
         'What can I do to improve my rank?',
         'Forecast my next week performance'
-      ]
-    }
-  }
-  
-  // Competitor comparison
-  if (q.includes('competitor') || q.includes('compar') || q.includes('lidl') || q.includes('vs')) {
-    const lidl = competitors.find((c: any) => c.merchant_name === 'Lidl')
-    return {
-      message: `**Competitive Analysis: You vs Lidl**
-
-**Transactions:**
-• Lidl: ${formatNumber(lidl.transactions)} (#1 rank)
-• You: ${formatNumber(carrefour.transactions)} (#5 rank)
-• Gap: ${formatNumber(lidl.transactions - carrefour.transactions)} transactions (${((lidl.transactions - carrefour.transactions) / carrefour.transactions * 100).toFixed(0)}% difference)
-
-**Strategy Comparison:**
-• Lidl: 3% cashback, volume-focused
-• You: 5% cashback, premium positioning
-
-**Customer Base:**
-• Lidl: ${formatNumber(lidl.customers)} customers
-• You: ${formatNumber(carrefour.customers)} customers
-
-**Your Competitive Advantages:**
-✓ Highest cashback rate attracts price-sensitive customers
-✓ Premium positioning allows for higher margins per transaction
-✓ Strong brand recognition in retail
-
-**Opportunities:**
-• Your higher cashback rate should drive 40-50% more transactions than Lidl (currently at 60% of their volume)
-• Focus on converting your cashback advantage into customer loyalty
-• Test if 4% rate maintains acquisition while improving margins
-
-*Add Claude API key for deeper competitive intelligence with market trends*`,
-      followups: [
-        'How can I close the gap with Lidl?',
-        'What if I reduced my cashback to 4%?',
-        'Compare my customer retention vs Lidl'
       ]
     }
   }
@@ -206,18 +175,12 @@ Your ROI is ${((carrefour.revenue - carrefour.cashback_paid) / carrefour.cashbac
 • ${formatNumber(carrefour.customers)} active customers
 • ${carrefour.cashback_percent}% cashback rate (highest in market)
 
-**🎯 Available Insights:**
-• Competitive positioning (#5 of ${competitors.length} merchants)
-• Performance trends and forecasts
-• Efficiency metrics and ROI analysis
-• Strategic recommendations
-
 **💡 Try asking:**
 • "What are my top insights?"
 • "Compare me to Lidl"
 • "How can I improve my ranking?"
 
-*Note: Running in demo mode. Add ANTHROPIC_API_KEY to enable full AI-powered analysis!*`,
+*Note: Running in fallback mode. Check API key configuration.*`,
     followups: [
       'What are my top insights?',
       'How do I compare to competitors?',

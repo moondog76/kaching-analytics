@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { signOut, useSession } from 'next-auth/react'
 import AIChat from '@/components/AIChat'
 import InsightsPanel from '@/components/InsightsPanel'
 import DrillableMetrics from '@/components/DrillableMetrics'
@@ -8,6 +9,7 @@ import { DataLoader } from '@/lib/data-loader'
 import { MerchantMetrics, CompetitorData } from '@/lib/types'
 
 export default function Dashboard() {
+  const { data: session } = useSession()
   const [data, setData] = useState<{
     carrefour: MerchantMetrics
     competitors: CompetitorData[]
@@ -70,9 +72,23 @@ export default function Dashboard() {
               </nav>
             </div>
             
-            <div className="flex items-center gap-3 px-4 py-2 bg-[#141932] border border-[#252B4A] rounded-lg">
-              <div className="w-2 h-2 rounded-full bg-[#00D9A3] animate-pulse" />
-              <span className="font-mono text-sm text-white">Carrefour Dashboard</span>
+            <div className="flex items-center gap-3">
+              {/* User info */}
+              <div className="flex items-center gap-3 px-4 py-2 bg-[#141932] border border-[#252B4A] rounded-lg">
+                <div className="w-2 h-2 rounded-full bg-[#00D9A3] animate-pulse" />
+                <span className="font-mono text-sm text-white">
+                  {session?.user?.name || 'Carrefour Dashboard'}
+                </span>
+              </div>
+              
+              {/* Logout button */}
+              <button
+                onClick={() => signOut({ callbackUrl: '/login' })}
+                className="px-4 py-2 bg-[#1C2342] hover:bg-[#252B4A] border border-[#252B4A] rounded-lg text-sm text-white transition-colors flex items-center gap-2"
+              >
+                <span>🚪</span>
+                Logout
+              </button>
             </div>
           </div>
         </header>

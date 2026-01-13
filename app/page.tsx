@@ -50,10 +50,10 @@ export default function Dashboard() {
           <div className="max-w-7xl mx-auto px-8 py-5 flex justify-between items-center">
             <div className="flex items-center gap-6">
               <div className="flex items-center gap-4">
-                <div className="text-3xl font-bold font-mono text-[#FF6B35]">
-                  KACHING
+                <div className="text-3xl font-bold text-[#0057A6]">
+                  Carrefour
                 </div>
-                <div className="text-sm text-[#5A5F7D]">Pro Analytics</div>
+                <div className="text-sm text-[#5A5F7D]">Analytics</div>
               </div>
               
               <nav className="flex gap-1">
@@ -225,4 +225,3 @@ export default function Dashboard() {
     </div>
   )
 }
- 

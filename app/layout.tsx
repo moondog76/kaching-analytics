@@ -3,8 +3,8 @@ import type { Metadata } from 'next'
 import AuthProvider from '@/components/AuthProvider'
 
 export const metadata: Metadata = {
-  title: 'Kaching Pro - AI-Native Analytics',
-  description: 'Autonomous AI analyst for retail campaign intelligence',
+  title: 'Carrefour Analytics - AI-Powered Insights',
+  description: 'AI-native analytics platform for Carrefour retail campaigns',
 }
 
 export default function RootLayout({

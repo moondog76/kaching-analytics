@@ -49,8 +49,7 @@ export default function LoginPage() {
         {/* Logo/Branding */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center gap-3 mb-4">
-            {/* Add Carrefour logo here when ready */}
-            <div className="text-4xl font-bold font-mono text-[#0057A6]">
+            <div className="text-4xl font-bold text-[#0057A6]">
               Carrefour
             </div>
           </div>

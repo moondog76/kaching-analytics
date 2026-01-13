@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { signOut, useSession } from 'next-auth/react'
 import { DataLoader } from '@/lib/data-loader'
 import { MerchantMetrics, CompetitorData } from '@/lib/types'
 import ChartBuilder from '@/components/ChartBuilder'
@@ -9,6 +10,7 @@ import CompetitorComparison from '@/components/CompetitorComparison'
 import Link from 'next/link'
 
 export default function AnalyticsPage() {
+  const { data: session } = useSession()
   const [data, setData] = useState<{
     carrefour: MerchantMetrics
     competitors: CompetitorData[]
@@ -53,10 +55,10 @@ export default function AnalyticsPage() {
           <div className="max-w-7xl mx-auto px-8 py-5 flex justify-between items-center">
             <div className="flex items-center gap-6">
               <Link href="/" className="flex items-center gap-4 hover:opacity-80 transition-opacity">
-                <div className="text-3xl font-bold font-mono text-[#FF6B35]">
-                  KACHING
+                <div className="text-3xl font-bold text-[#0057A6]">
+                  Carrefour
                 </div>
-                <div className="text-sm text-[#5A5F7D]">Pro Analytics</div>
+                <div className="text-sm text-[#5A5F7D]">Analytics</div>
               </Link>
               
               <nav className="flex gap-1">
@@ -75,9 +77,24 @@ export default function AnalyticsPage() {
               </nav>
             </div>
             
-            <div className="flex items-center gap-3 px-4 py-2 bg-[#141932] border border-[#252B4A] rounded-lg">
-              <div className="w-2 h-2 rounded-full bg-[#00D9A3] animate-pulse" />
-              <span className="font-mono text-sm text-white">{data.carrefour.merchant_name}</span>
+            <div className="flex items-center gap-3">
+              {/* User info */}
+              <div className="flex items-center gap-3 px-4 py-2 bg-[#141932] border border-[#252B4A] rounded-lg">
+                <div className="w-2 h-2 rounded-full bg-[#00D9A3] animate-pulse" />
+                <span className="font-mono text-sm text-white">
+                  {session?.user?.name || data.carrefour.merchant_name}
+                </span>
+              </div>
+              
+              {/* Logout button */}
+              <button
+                onClick={() => signOut({ callbackUrl: '/login' })}
+                className="px-4 py-2 bg-[#1C2342] hover:bg-[#252B4A] border border-[#252B4A] rounded-lg text-sm text-white transition-colors flex items-center gap-2"
+              >
+                <span>🚪</span>
+                Logout
+              </button>
+            </div>
             </div>
           </div>
         </header>

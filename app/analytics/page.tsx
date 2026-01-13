@@ -95,7 +95,6 @@ export default function AnalyticsPage() {
                 Logout
               </button>
             </div>
-            </div>
           </div>
         </header>
         

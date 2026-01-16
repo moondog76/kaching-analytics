@@ -1,0 +1,101 @@
+transaction_id,merchant_name,transaction_date,amount,customer_id,cashback_amount,category
+txn_001,Carrefour,2026-01-14,45.50,cust_2301,2.28,Groceries
+txn_002,Carrefour,2026-01-14,78.20,cust_4512,3.91,Groceries
+txn_003,Carrefour,2026-01-14,120.00,cust_7823,6.00,Electronics
+txn_004,Carrefour,2026-01-13,34.90,cust_1205,1.75,Groceries
+txn_005,Carrefour,2026-01-13,89.50,cust_3456,4.48,Home & Garden
+txn_006,Carrefour,2026-01-13,156.30,cust_6789,7.82,Electronics
+txn_007,Carrefour,2026-01-13,42.10,cust_2301,2.11,Groceries
+txn_008,Carrefour,2026-01-12,67.80,cust_8901,3.39,Groceries
+txn_009,Carrefour,2026-01-12,95.40,cust_4512,4.77,Clothing
+txn_010,Carrefour,2026-01-12,210.00,cust_5634,10.50,Electronics
+txn_011,Carrefour,2026-01-11,52.30,cust_7823,2.62,Groceries
+txn_012,Carrefour,2026-01-11,73.60,cust_1205,3.68,Groceries
+txn_013,Carrefour,2026-01-11,188.90,cust_3456,9.45,Home & Garden
+txn_014,Carrefour,2026-01-10,41.20,cust_6789,2.06,Groceries
+txn_015,Carrefour,2026-01-10,99.80,cust_2301,4.99,Electronics
+txn_016,Lidl,2026-01-14,32.50,cust_9012,0.98,Groceries
+txn_017,Lidl,2026-01-14,48.70,cust_3345,1.46,Groceries
+txn_018,Lidl,2026-01-14,65.20,cust_5567,1.96,Groceries
+txn_019,Lidl,2026-01-13,29.90,cust_7789,0.90,Groceries
+txn_020,Lidl,2026-01-13,54.30,cust_9012,1.63,Groceries
+txn_021,Lidl,2026-01-13,71.50,cust_3345,2.15,Electronics
+txn_022,Lidl,2026-01-12,38.20,cust_5567,1.15,Groceries
+txn_023,Lidl,2026-01-12,62.80,cust_7789,1.88,Groceries
+txn_024,Lidl,2026-01-12,85.40,cust_9012,2.56,Home & Garden
+txn_025,Lidl,2026-01-11,44.60,cust_3345,1.34,Groceries
+txn_026,Kaufland,2026-01-14,56.30,cust_1123,1.97,Groceries
+txn_027,Kaufland,2026-01-14,82.40,cust_2234,2.88,Groceries
+txn_028,Kaufland,2026-01-14,115.70,cust_3345,4.05,Electronics
+txn_029,Kaufland,2026-01-13,47.90,cust_4456,1.68,Groceries
+txn_030,Kaufland,2026-01-13,93.20,cust_5567,3.26,Home & Garden
+txn_031,Kaufland,2026-01-13,128.50,cust_6678,4.50,Electronics
+txn_032,Kaufland,2026-01-12,52.80,cust_1123,1.85,Groceries
+txn_033,Kaufland,2026-01-12,88.60,cust_2234,3.10,Groceries
+txn_034,Kaufland,2026-01-12,142.30,cust_3345,4.98,Electronics
+txn_035,Kaufland,2026-01-11,61.40,cust_4456,2.15,Groceries
+txn_036,Penny,2026-01-14,28.50,cust_7789,0.71,Groceries
+txn_037,Penny,2026-01-14,41.20,cust_8890,1.03,Groceries
+txn_038,Penny,2026-01-14,53.80,cust_9901,1.35,Groceries
+txn_039,Penny,2026-01-13,35.60,cust_7789,0.89,Groceries
+txn_040,Penny,2026-01-13,48.90,cust_8890,1.22,Groceries
+txn_041,Penny,2026-01-13,67.30,cust_9901,1.68,Electronics
+txn_042,Penny,2026-01-12,31.70,cust_7789,0.79,Groceries
+txn_043,Penny,2026-01-12,44.50,cust_8890,1.11,Groceries
+txn_044,Penny,2026-01-12,58.20,cust_9901,1.46,Home & Garden
+txn_045,Penny,2026-01-11,39.80,cust_7789,1.00,Groceries
+txn_046,Carrefour,2026-01-09,125.60,cust_4512,6.28,Electronics
+txn_047,Carrefour,2026-01-09,58.30,cust_7823,2.92,Groceries
+txn_048,Carrefour,2026-01-08,87.90,cust_1205,4.40,Groceries
+txn_049,Carrefour,2026-01-08,145.20,cust_3456,7.26,Home & Garden
+txn_050,Carrefour,2026-01-07,63.50,cust_6789,3.18,Groceries
+txn_051,Carrefour,2026-01-07,92.80,cust_2301,4.64,Clothing
+txn_052,Carrefour,2026-01-06,178.40,cust_4512,8.92,Electronics
+txn_053,Carrefour,2026-01-06,71.20,cust_7823,3.56,Groceries
+txn_054,Carrefour,2026-01-05,105.60,cust_1205,5.28,Electronics
+txn_055,Carrefour,2026-01-05,49.90,cust_3456,2.50,Groceries
+txn_056,Carrefour,2026-01-04,134.70,cust_6789,6.74,Home & Garden
+txn_057,Carrefour,2026-01-04,56.40,cust_2301,2.82,Groceries
+txn_058,Carrefour,2026-01-03,88.50,cust_4512,4.43,Groceries
+txn_059,Carrefour,2026-01-03,167.20,cust_7823,8.36,Electronics
+txn_060,Carrefour,2026-01-02,75.80,cust_1205,3.79,Groceries
+txn_061,Lidl,2026-01-09,76.40,cust_5567,2.29,Groceries
+txn_062,Lidl,2026-01-09,49.20,cust_7789,1.48,Groceries
+txn_063,Lidl,2026-01-08,68.50,cust_9012,2.06,Groceries
+txn_064,Lidl,2026-01-08,91.30,cust_3345,2.74,Electronics
+txn_065,Lidl,2026-01-07,52.80,cust_5567,1.58,Groceries
+txn_066,Lidl,2026-01-07,73.60,cust_7789,2.21,Groceries
+txn_067,Lidl,2026-01-06,97.40,cust_9012,2.92,Home & Garden
+txn_068,Lidl,2026-01-06,45.90,cust_3345,1.38,Groceries
+txn_069,Lidl,2026-01-05,64.70,cust_5567,1.94,Groceries
+txn_070,Lidl,2026-01-05,86.20,cust_7789,2.59,Electronics
+txn_071,Kaufland,2026-01-09,98.70,cust_2234,3.45,Groceries
+txn_072,Kaufland,2026-01-09,132.50,cust_3345,4.64,Electronics
+txn_073,Kaufland,2026-01-08,74.20,cust_4456,2.60,Groceries
+txn_074,Kaufland,2026-01-08,108.90,cust_5567,3.81,Home & Garden
+txn_075,Kaufland,2026-01-07,85.60,cust_6678,3.00,Groceries
+txn_076,Kaufland,2026-01-07,119.30,cust_1123,4.18,Electronics
+txn_077,Kaufland,2026-01-06,156.80,cust_2234,5.49,Electronics
+txn_078,Kaufland,2026-01-06,92.40,cust_3345,3.23,Groceries
+txn_079,Kaufland,2026-01-05,127.50,cust_4456,4.46,Home & Garden
+txn_080,Kaufland,2026-01-05,68.70,cust_5567,2.40,Groceries
+txn_081,Penny,2026-01-09,52.30,cust_8890,1.31,Groceries
+txn_082,Penny,2026-01-09,38.70,cust_9901,0.97,Groceries
+txn_083,Penny,2026-01-08,61.50,cust_7789,1.54,Groceries
+txn_084,Penny,2026-01-08,74.20,cust_8890,1.86,Electronics
+txn_085,Penny,2026-01-07,46.80,cust_9901,1.17,Groceries
+txn_086,Penny,2026-01-07,55.90,cust_7789,1.40,Groceries
+txn_087,Penny,2026-01-06,69.40,cust_8890,1.74,Home & Garden
+txn_088,Penny,2026-01-06,42.60,cust_9901,1.07,Groceries
+txn_089,Penny,2026-01-05,57.80,cust_7789,1.45,Groceries
+txn_090,Penny,2026-01-05,63.20,cust_8890,1.58,Electronics
+txn_091,Carrefour,2025-12-31,198.50,cust_2301,9.93,Electronics
+txn_092,Carrefour,2025-12-31,82.40,cust_4512,4.12,Groceries
+txn_093,Carrefour,2025-12-30,115.70,cust_7823,5.79,Home & Garden
+txn_094,Carrefour,2025-12-30,67.90,cust_1205,3.40,Groceries
+txn_095,Carrefour,2025-12-29,143.20,cust_3456,7.16,Electronics
+txn_096,Carrefour,2025-12-29,89.60,cust_6789,4.48,Groceries
+txn_097,Carrefour,2025-12-28,176.40,cust_2301,8.82,Electronics
+txn_098,Carrefour,2025-12-28,94.50,cust_4512,4.73,Groceries
+txn_099,Carrefour,2025-12-27,127.80,cust_7823,6.39,Home & Garden
+txn_100,Carrefour,2025-12-27,71.30,cust_1205,3.57,Groceries

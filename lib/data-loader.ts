@@ -1,177 +1,239 @@
-import { Transaction, MerchantMetrics, CompetitorData, TimeSeriesPoint } from './types'
+import { prisma } from './db'
+import { MerchantMetrics, CompetitorData, TimeSeriesPoint } from './types'
 import { format, subDays } from 'date-fns'
 
 /**
- * Load and process transaction data
+ * Load and process data from PostgreSQL database
  */
 export class DataLoader {
   
   /**
-   * Process raw transactions into merchant metrics
+   * Load merchant data by email (for logged-in user)
    */
-  static processTransactions(transactions: Transaction[]): {
+  static async loadMerchantDataByEmail(email: string): Promise<{
     carrefour: MerchantMetrics
     competitors: CompetitorData[]
     historical: MerchantMetrics[]
-    timeSeries: Record<string, TimeSeriesPoint[]>
-  } {
-    
-    // If no transactions, return demo data
-    if (!transactions || transactions.length === 0) {
-      const demoData = this.loadDemoData()
-      const historical = this.generateHistoricalData(demoData.carrefour, 30)
-      
-      const timeSeries = {
-        transactions: historical.map((d, i) => ({
-          date: format(subDays(new Date(), 30 - i), 'yyyy-MM-dd'),
-          value: d.transactions,
-          metric: 'transactions'
-        })),
-        revenue: historical.map((d, i) => ({
-          date: format(subDays(new Date(), 30 - i), 'yyyy-MM-dd'),
-          value: d.revenue,
-          metric: 'revenue'
-        })),
-        customers: historical.map((d, i) => ({
-          date: format(subDays(new Date(), 30 - i), 'yyyy-MM-dd'),
-          value: d.customers,
-          metric: 'customers'
-        }))
+  } | null> {
+    try {
+      // Find user and their merchant
+      const user = await prisma.users.findUnique({
+        where: { email },
+        include: { merchant: true }
+      })
+
+      if (!user || !user.merchant) {
+        console.error('User or merchant not found')
+        return this.loadDemoData() // Fallback to demo
       }
+
+      // Get current merchant metrics
+      const merchantData = await this.getMerchantMetrics(user.merchant.id)
       
+      // Get competitors
+      const competitors = await this.getCompetitors(user.merchant.id)
+      
+      // Get historical data (last 30 days)
+      const historical = await this.getHistoricalMetrics(user.merchant.id, 30)
+
       return {
-        carrefour: demoData.carrefour,
-        competitors: demoData.competitors,
-        historical,
-        timeSeries
+        carrefour: merchantData,
+        competitors,
+        historical
       }
-    }
-    
-    // Group by merchant
-    const byMerchant = this.groupByMerchant(transactions)
-    
-    // Calculate metrics for each merchant
-    const merchantMetrics = Object.entries(byMerchant).map(([name, txns]) => 
-      this.calculateMetrics(name, txns)
-    )
-    
-    // Sort by transactions to get rankings
-    merchantMetrics.sort((a, b) => b.transactions - a.transactions)
-    
-    // Add rankings
-    const competitors: CompetitorData[] = merchantMetrics.map((m, index) => ({
-      ...m,
-      rank: index + 1,
-      isYou: m.merchant_name === 'Carrefour',
-      market_share: (m.transactions / transactions.length) * 100
-    }))
-    
-    // Get Carrefour data
-    const carrefour = competitors.find(c => c.isYou) || competitors[0]
-    
-    // Generate historical data (simulate past 30 days)
-    const historical = this.generateHistoricalData(carrefour, 30)
-    
-    // Generate time series for forecasting
-    const timeSeries = {
-      transactions: historical.map((d, i) => ({
-        date: format(subDays(new Date(), 30 - i), 'yyyy-MM-dd'),
-        value: d.transactions,
-        metric: 'transactions'
-      })),
-      revenue: historical.map((d, i) => ({
-        date: format(subDays(new Date(), 30 - i), 'yyyy-MM-dd'),
-        value: d.revenue,
-        metric: 'revenue'
-      })),
-      customers: historical.map((d, i) => ({
-        date: format(subDays(new Date(), 30 - i), 'yyyy-MM-dd'),
-        value: d.customers,
-        metric: 'customers'
-      }))
-    }
-    
-    return {
-      carrefour,
-      competitors,
-      historical,
-      timeSeries
+    } catch (error) {
+      console.error('Error loading merchant data:', error)
+      return this.loadDemoData() // Fallback to demo
     }
   }
-  
+
   /**
-   * Group transactions by merchant
+   * Get metrics for a specific merchant
    */
-  private static groupByMerchant(transactions: Transaction[]): Record<string, Transaction[]> {
-    const grouped: Record<string, Transaction[]> = {}
-    
-    transactions.forEach(txn => {
-      if (!grouped[txn.merchant_name]) {
-        grouped[txn.merchant_name] = []
-      }
-      grouped[txn.merchant_name].push(txn)
+  static async getMerchantMetrics(merchantId: string): Promise<MerchantMetrics> {
+    const merchant = await prisma.merchants.findUnique({
+      where: { id: merchantId }
     })
-    
-    return grouped
-  }
-  
-  /**
-   * Calculate metrics for a merchant
-   */
-  private static calculateMetrics(
-    merchantName: string,
-    transactions: Transaction[]
-  ): MerchantMetrics {
-    
-    const totalRevenue = transactions.reduce((sum, t) => sum + t.amount_cents, 0)
-    const totalCashback = transactions.reduce((sum, t) => sum + (t.cashback_amount || 0), 0)
-    const uniqueCustomers = new Set(transactions.map(t => t.user_id)).size
-    const campaignActive = transactions.some(t => t.has_campaign)
-    const cashbackPercent = transactions.find(t => t.cashback_percent)?.cashback_percent || 0
-    
+
+    if (!merchant) {
+      throw new Error('Merchant not found')
+    }
+
+    // Get today's metrics or calculate from transactions
+    const today = new Date()
+    const dailyMetric = await prisma.daily_metrics.findFirst({
+      where: {
+        merchant_id: merchantId,
+        date: today
+      }
+    })
+
+    // If no daily metrics, calculate from transactions
+    if (!dailyMetric) {
+      const transactions = await prisma.transactions.findMany({
+        where: {
+          merchant_id: merchantId,
+          transaction_date: {
+            gte: subDays(today, 30)
+          }
+        }
+      })
+
+      const totalRevenue = transactions.reduce((sum, t) => sum + Number(t.amount), 0)
+      const totalCashback = transactions.reduce((sum, t) => sum + Number(t.cashback_amount || 0), 0)
+      const uniqueCustomers = new Set(transactions.map(t => t.customer_id)).size
+
+      return {
+        merchant_name: merchant.name,
+        transactions: transactions.length,
+        revenue: Math.round(totalRevenue * 100), // Convert to cents
+        customers: uniqueCustomers,
+        cashback_paid: Math.round(totalCashback * 100),
+        cashback_percent: Number(merchant.cashback_percent || 0),
+        campaign_active: true,
+        avg_transaction: transactions.length > 0 ? totalRevenue / transactions.length : 0,
+        period: format(today, 'yyyy-MM-dd')
+      }
+    }
+
+    // Use daily metrics
     return {
-      merchant_name: merchantName,
-      transactions: transactions.length,
-      revenue: totalRevenue,
-      customers: uniqueCustomers,
-      cashback_paid: totalCashback,
-      cashback_percent: cashbackPercent,
-      campaign_active: campaignActive,
-      avg_transaction: totalRevenue / transactions.length,
-      period: format(new Date(), 'yyyy-MM-dd')
+      merchant_name: merchant.name,
+      transactions: dailyMetric.transactions_count || 0,
+      revenue: Math.round(Number(dailyMetric.revenue) * 100),
+      customers: dailyMetric.unique_customers || 0,
+      cashback_paid: Math.round(Number(dailyMetric.cashback_paid) * 100),
+      cashback_percent: Number(merchant.cashback_percent || 0),
+      campaign_active: true,
+      avg_transaction: dailyMetric.transactions_count ? Number(dailyMetric.revenue) / dailyMetric.transactions_count : 0,
+      period: format(dailyMetric.date, 'yyyy-MM-dd')
     }
   }
-  
+
   /**
-   * Generate realistic historical data based on current metrics
+   * Get competitor data
    */
-  private static generateHistoricalData(
-    current: MerchantMetrics,
-    days: number
-  ): MerchantMetrics[] {
-    
-    // Safety check
-    if (!current || !current.merchant_name) {
-      console.error('Invalid current data for generateHistoricalData')
+  static async getCompetitors(excludeMerchantId: string): Promise<CompetitorData[]> {
+    const merchants = await prisma.merchants.findMany({
+      where: {
+        id: {
+          not: excludeMerchantId
+        }
+      }
+    })
+
+    const competitorData: CompetitorData[] = []
+
+    for (const merchant of merchants) {
+      const metrics = await this.getMerchantMetrics(merchant.id)
+      competitorData.push({
+        ...metrics,
+        rank: 0, // Will be calculated after sorting
+        isYou: false
+      })
+    }
+
+    // Sort by revenue and assign ranks
+    competitorData.sort((a, b) => b.revenue - a.revenue)
+    competitorData.forEach((comp, index) => {
+      comp.rank = index + 1
+    })
+
+    return competitorData
+  }
+
+  /**
+   * Get historical metrics for a merchant
+   */
+  static async getHistoricalMetrics(merchantId: string, days: number): Promise<MerchantMetrics[]> {
+    const endDate = new Date()
+    const startDate = subDays(endDate, days)
+
+    const dailyMetrics = await prisma.daily_metrics.findMany({
+      where: {
+        merchant_id: merchantId,
+        date: {
+          gte: startDate,
+          lte: endDate
+        }
+      },
+      orderBy: {
+        date: 'asc'
+      }
+    })
+
+    const merchant = await prisma.merchants.findUnique({
+      where: { id: merchantId }
+    })
+
+    if (!merchant) {
       return []
     }
-    
+
+    return dailyMetrics.map(dm => ({
+      merchant_name: merchant.name,
+      transactions: dm.transactions_count || 0,
+      revenue: Math.round(Number(dm.revenue) * 100),
+      customers: dm.unique_customers || 0,
+      cashback_paid: Math.round(Number(dm.cashback_paid) * 100),
+      cashback_percent: Number(merchant.cashback_percent || 0),
+      campaign_active: true,
+      avg_transaction: dm.transactions_count ? Number(dm.revenue) / dm.transactions_count : 0,
+      period: format(dm.date, 'yyyy-MM-dd')
+    }))
+  }
+
+  /**
+   * Fallback to demo data (for development/demo purposes)
+   */
+  static loadDemoData(): {
+    carrefour: MerchantMetrics
+    competitors: CompetitorData[]
+    historical: MerchantMetrics[]
+  } {
+    const carrefour: MerchantMetrics = {
+      merchant_name: 'Carrefour',
+      transactions: 482,
+      revenue: 272978,
+      customers: 416,
+      cashback_paid: 13649,
+      cashback_percent: 5.0,
+      campaign_active: true,
+      avg_transaction: 566.1,
+      period: format(new Date(), 'yyyy-MM-dd')
+    }
+
+    const competitors: CompetitorData[] = [
+      { merchant_name: 'Lidl', transactions: 845, revenue: 402350, customers: 723, cashback_paid: 12071, cashback_percent: 3.0, campaign_active: true, avg_transaction: 476.2, period: format(new Date(), 'yyyy-MM-dd'), rank: 1, isYou: false },
+      { merchant_name: 'Kaufland', transactions: 723, revenue: 389200, customers: 634, cashback_paid: 13622, cashback_percent: 3.5, campaign_active: true, avg_transaction: 538.4, period: format(new Date(), 'yyyy-MM-dd'), rank: 2, isYou: false },
+      { merchant_name: 'Auchan', transactions: 634, revenue: 325600, customers: 542, cashback_paid: 8768, cashback_percent: 2.7, campaign_active: true, avg_transaction: 513.6, period: format(new Date(), 'yyyy-MM-dd'), rank: 3, isYou: false },
+      { merchant_name: 'Mega Image', transactions: 567, revenue: 289400, customers: 489, cashback_paid: 9812, cashback_percent: 3.4, campaign_active: true, avg_transaction: 510.4, period: format(new Date(), 'yyyy-MM-dd'), rank: 4, isYou: false },
+      { merchant_name: 'Carrefour', transactions: 482, revenue: 272978, customers: 416, cashback_paid: 13649, cashback_percent: 5.0, campaign_active: true, avg_transaction: 566.1, period: format(new Date(), 'yyyy-MM-dd'), rank: 5, isYou: true },
+      { merchant_name: 'Profi', transactions: 423, revenue: 198700, customers: 367, cashback_paid: 5961, cashback_percent: 3.0, campaign_active: true, avg_transaction: 469.7, period: format(new Date(), 'yyyy-MM-dd'), rank: 6, isYou: false },
+      { merchant_name: 'Penny', transactions: 389, revenue: 176300, customers: 334, cashback_paid: 4408, cashback_percent: 2.5, campaign_active: true, avg_transaction: 453.3, period: format(new Date(), 'yyyy-MM-dd'), rank: 7, isYou: false },
+    ]
+
+    const historical = this.generateHistoricalData(carrefour, 30)
+
+    return { carrefour, competitors, historical }
+  }
+
+  /**
+   * Generate historical data for demo purposes
+   */
+  static generateHistoricalData(current: MerchantMetrics, days: number): MerchantMetrics[] {
+    if (!current || !current.merchant_name) {
+      console.error('Invalid current data for historical generation')
+      return []
+    }
+
     const historical: MerchantMetrics[] = []
     
     for (let i = days; i > 0; i--) {
-      const date = subDays(new Date(), i)
-      const dayOfWeek = date.getDay()
-      
-      // Weekend effect: 20% fewer transactions
+      const variance = 0.85 + Math.random() * 0.30
+      const dayOfWeek = (new Date().getDay() - i + 7) % 7
       const weekendFactor = (dayOfWeek === 0 || dayOfWeek === 6) ? 0.8 : 1.0
-      
-      // General trend: slight growth over time
-      const trendFactor = 0.95 + (0.10 * (days - i) / days)
-      
-      // Random daily variation: +/- 15%
-      const randomFactor = 0.85 + Math.random() * 0.30
-      
-      const factor = weekendFactor * trendFactor * randomFactor
+      const factor = variance * weekendFactor
       
       historical.push({
         merchant_name: current.merchant_name,
@@ -182,36 +244,21 @@ export class DataLoader {
         cashback_percent: current.cashback_percent,
         campaign_active: current.campaign_active,
         avg_transaction: current.avg_transaction,
-        period: format(date, 'yyyy-MM-dd')
+        period: format(subDays(new Date(), i), 'yyyy-MM-dd')
       })
     }
     
     return historical
   }
-  
+
   /**
-   * Load demo data (for initial testing without CSV)
+   * Process transactions (for backward compatibility)
    */
-  static loadDemoData() {
+  static processTransactions(transactions: any[]) {
+    // If called with empty array, return demo data
     return {
-      carrefour: {
-        merchant_name: 'Carrefour',
-        transactions: 482,
-        revenue: 272978.3,
-        customers: 416,
-        cashback_paid: 13648.92,
-        cashback_percent: 5,
-        campaign_active: true,
-        avg_transaction: 566.36,
-        period: format(new Date(), 'yyyy-MM-dd')
-      },
-      competitors: [
-        { rank: 1, merchant_name: 'Lidl', transactions: 797, revenue: 811667.2, customers: 670, cashback_percent: 3, cashback_paid: 24350, campaign_active: true, avg_transaction: 1018, market_share: 15.94 },
-        { rank: 2, merchant_name: 'Kaufland', transactions: 490, revenue: 470711.1, customers: 427, cashback_percent: 4, cashback_paid: 18828, campaign_active: true, avg_transaction: 961, market_share: 9.8 },
-        { rank: 3, merchant_name: 'Mega Image', transactions: 734, revenue: 307126.2, customers: 621, cashback_percent: 2.5, cashback_paid: 7678, campaign_active: true, avg_transaction: 418, market_share: 14.68 },
-        { rank: 4, merchant_name: 'Profi', transactions: 659, revenue: 279538.3, customers: 568, cashback_percent: 3, cashback_paid: 8386, campaign_active: true, avg_transaction: 424, market_share: 13.18 },
-        { rank: 5, merchant_name: 'Carrefour', transactions: 482, revenue: 272978.3, customers: 416, cashback_percent: 5, cashback_paid: 13648.92, campaign_active: true, avg_transaction: 566, isYou: true, market_share: 9.64 }
-      ] as CompetitorData[]
+      ...this.loadDemoData(),
+      timeSeries: {}
     }
   }
 }

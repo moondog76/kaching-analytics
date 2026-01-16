@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server'
 import { ForecastingEngine } from '@/lib/forecasting-engine'
 import { DataLoader } from '@/lib/data-loader'
 
-
 export async function POST(request: NextRequest) {
   try {
     const { metric = 'transactions', days_ahead = 7 } = await request.json()
@@ -10,7 +9,9 @@ export async function POST(request: NextRequest) {
     // Load data and get time series
     const { timeSeries } = DataLoader.processTransactions([])
     
-    if (!timeSeries[metric]) {
+    const metricData = (timeSeries as any)[metric]
+    
+    if (!metricData) {
       return NextResponse.json(
         { error: `Invalid metric: ${metric}` },
         { status: 400 }
@@ -18,25 +19,13 @@ export async function POST(request: NextRequest) {
     }
     
     // Generate forecast
-    const forecast = await ForecastingEngine.forecastMetric(
-      timeSeries[metric],
-      days_ahead
-    )
+    const forecast = await ForecastingEngine.forecastMetric(metricData, days_ahead)
     
-    return NextResponse.json({
-      success: true,
-      forecast,
-      generated_at: new Date().toISOString()
-    })
-    
+    return NextResponse.json(forecast)
   } catch (error) {
-    console.error('Forecasting error:', error)
-    
+    console.error('Forecast error:', error)
     return NextResponse.json(
-      { 
-        error: 'Failed to generate forecast',
-        details: error instanceof Error ? error.message : 'Unknown error'
-      },
+      { error: 'Failed to generate forecast' },
       { status: 500 }
     )
   }

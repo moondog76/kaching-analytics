@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { signOut, useSession } from 'next-auth/react'
+import { DataLoader } from '@/lib/data-loader'
 import { MerchantMetrics, CompetitorData } from '@/lib/types'
 import ChartBuilder from '@/components/ChartBuilder'
 import ForecastChart from '@/components/ForecastChart'
@@ -19,17 +20,14 @@ export default function AnalyticsPage() {
   const [activeTab, setActiveTab] = useState<'trends' | 'forecast' | 'competition'>('trends')
   
   useEffect(() => {
-    async function loadData() {
-      try {
-        const response = await fetch('/api/merchant-data')
-        const data = await response.json()
-        setData(data)
-      } catch (error) {
-        console.error('Error loading data:', error)
-      }
-    }
-    loadData()
-  }, [session])
+    // Load demo data
+    const demoData = DataLoader.loadDemoData()
+    const { historical } = DataLoader.processTransactions([])
+    setData({
+      ...demoData,
+      historical
+    })
+  }, [])
   
   if (!data) {
     return (

@@ -5,6 +5,7 @@ import { signOut, useSession } from 'next-auth/react'
 import AIChat from '@/components/AIChat'
 import InsightsPanel from '@/components/InsightsPanel'
 import DrillableMetrics from '@/components/DrillableMetrics'
+import { DataLoader } from '@/lib/data-loader'
 import { MerchantMetrics, CompetitorData } from '@/lib/types'
 
 export default function Dashboard() {
@@ -14,18 +15,11 @@ export default function Dashboard() {
     competitors: CompetitorData[]
   } | null>(null)
   
-useEffect(() => {
-    async function loadData() {
-      try {
-        const response = await fetch('/api/merchant-data')
-        const data = await response.json()
-        setData(data)
-      } catch (error) {
-        console.error('Error loading data:', error)
-      }
-    }
-    loadData()
-  }, [session])
+  useEffect(() => {
+    // Load demo data
+    const demoData = DataLoader.loadDemoData()
+    setData(demoData)
+  }, [])
   
   if (!data) {
     return (

@@ -1,0 +1,57 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model merchants {
+  id               String          @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  name             String          @db.VarChar(255)
+  industry         String?         @db.VarChar(100)
+  cashback_percent Decimal?        @db.Decimal(5, 2)
+  settings         Json?
+  created_at       DateTime?       @default(now())
+  users            users[]
+  transactions     transactions[]
+  daily_metrics    daily_metrics[]
+}
+
+model users {
+  id            String     @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  email         String     @unique @db.VarChar(255)
+  password_hash String     @db.VarChar(255)
+  name          String?    @db.VarChar(255)
+  merchant_id   String?    @db.Uuid
+  role          String?    @default("merchant")
+  created_at    DateTime?  @default(now())
+  merchant      merchants? @relation(fields: [merchant_id], references: [id])
+}
+
+model transactions {
+  id               String     @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  merchant_id      String?    @db.Uuid
+  transaction_date DateTime   @db.Date
+  amount           Decimal    @db.Decimal(10, 2)
+  customer_id      String?
+  cashback_amount  Decimal?   @db.Decimal(10, 2)
+  category         String?
+  created_at       DateTime?  @default(now())
+  merchant         merchants? @relation(fields: [merchant_id], references: [id])
+}
+
+model daily_metrics {
+  id                 String     @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  merchant_id        String?    @db.Uuid
+  date               DateTime   @db.Date
+  transactions_count Int?       @default(0)
+  revenue            Decimal?   @default(0) @db.Decimal(12, 2)
+  unique_customers   Int?       @default(0)
+  cashback_paid      Decimal?   @default(0) @db.Decimal(12, 2)
+  created_at         DateTime?  @default(now())
+  merchant           merchants? @relation(fields: [merchant_id], references: [id])
+
+  @@unique([merchant_id, date])
+}

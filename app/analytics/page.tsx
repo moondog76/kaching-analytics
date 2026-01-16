@@ -58,7 +58,7 @@ export default function AnalyticsPage() {
             <div className="flex items-center gap-6">
               <Link href="/" className="flex items-center gap-4 hover:opacity-80 transition-opacity">
                 <div className="text-3xl font-bold text-[#0057A6]">
-                  Carrefour
+                  {data?.carrefour?.merchant_name || "Analytics"}
                 </div>
                 <div className="text-sm text-[#5A5F7D]">Analytics</div>
               </Link>

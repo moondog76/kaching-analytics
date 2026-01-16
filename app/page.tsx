@@ -57,7 +57,7 @@ useEffect(() => {
             <div className="flex items-center gap-6">
               <div className="flex items-center gap-4">
                 <div className="text-3xl font-bold text-[#0057A6]">
-                  Carrefour
+                  {data.carrefour.merchant_name}
                 </div>
                 <div className="text-sm text-[#5A5F7D]">Analytics</div>
               </div>

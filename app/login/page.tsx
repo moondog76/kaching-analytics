@@ -110,14 +110,6 @@ export default function LoginPage() {
             </button>
           </form>
 
-          {/* Demo Credentials */}
-          <div className="mt-6 pt-6 border-t border-[#252B4A]">
-            <p className="text-[#8B92B8] text-sm mb-2">Demo credentials:</p>
-            <div className="space-y-1 text-xs font-mono text-[#5A5F7D]">
-              <p>carrefour@demo.com / demo123</p>
-              <p>lidl@demo.com / demo123</p>
-            </div>
-          </div>
         </div>
 
         {/* Footer */}

@@ -231,3 +231,4 @@ useEffect(() => {
     </div>
   )
 }
+// Rebuild trigger Lör 17 Jan 2026 13:38:44 CET

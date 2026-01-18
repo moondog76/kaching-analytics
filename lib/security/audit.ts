@@ -1,5 +1,5 @@
 // Audit Logging Service for Enterprise Security
-import { PrismaClient } from '../../lib/generated/prisma';
+import { PrismaClient } from '@prisma/client';
 import { headers } from 'next/headers';
 
 const prisma = new PrismaClient();

@@ -1,6 +1,6 @@
 // Audit Middleware Wrapper for API Routes
 import { getServerSession } from 'next-auth';
-import { logApiAccess } from './audit';
+import { logAuditEvent } from './audit';
 import { NextRequest, NextResponse } from 'next/server';
 
 type ApiHandler = (request: NextRequest, context?: any) => Promise<NextResponse>;
@@ -23,7 +23,7 @@ export function withAudit(
       
       // Log successful access
       const duration = Date.now() - startTime;
-      await logApiAccess(
+      await logAuditEvent(
         userId,
         merchantId,
         resourceName,
@@ -43,7 +43,7 @@ export function withAudit(
       const userId = (session?.user as any)?.id || 'anonymous';
       const merchantId = (session?.user as any)?.merchant || 'unknown';
       
-      await logApiAccess(
+      await logAuditEvent(
         userId,
         merchantId,
         resourceName,

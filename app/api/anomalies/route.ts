@@ -1,4 +1,4 @@
-import { logApiAccess } from '@/lib/security/audit';
+import { logAuditEvent } from '@/lib/security/audit';
 import { NextRequest, NextResponse } from 'next/server'
 import { AnomalyDetector } from '@/lib/anomaly-detector'
 import { DataLoader } from '@/lib/data-loader'

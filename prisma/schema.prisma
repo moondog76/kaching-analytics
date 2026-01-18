@@ -1,35 +1,54 @@
 generator client {
   provider = "prisma-client-js"
-  output   = "../lib/generated/prisma"
 }
 
 datasource db {
-  url = env("DATABASE_URL")
   provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 model merchants {
-  id               String          @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-  name             String          @db.VarChar(255)
-  industry         String?         @db.VarChar(100)
-  cashback_percent Decimal?        @db.Decimal(5, 2)
+  id               String         @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  name             String         @db.VarChar(255)
+  industry         String?        @db.VarChar(100)
+  cashback_percent Decimal?       @db.Decimal(5, 2)
   settings         Json?
-  created_at       DateTime?       @default(now())
+  created_at       DateTime?      @default(now())
   users            users[]
   transactions     transactions[]
   daily_metrics    daily_metrics[]
+  audit_logs       audit_logs[]
 }
 
 model users {
-  id            String     @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-  email         String     @unique @db.VarChar(255)
-  password_hash String     @db.VarChar(255)
-  name          String?    @db.VarChar(255)
-  merchant_id   String?    @db.Uuid
-  role          String?    @default("merchant")
-  created_at    DateTime?  @default(now())
-  merchant      merchants? @relation(fields: [merchant_id], references: [id])
+  id            String       @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  email         String       @unique @db.VarChar(255)
+  password_hash String?      @db.VarChar(255)
+  name          String?      @db.VarChar(255)
+  merchant_id   String?      @db.Uuid
+  role          String?      @default("merchant")
+  is_active     Boolean      @default(true)
+  last_login    DateTime?
+  created_at    DateTime?    @default(now())
+  updated_at    DateTime?    @updatedAt
+  // SSO fields
+  sso_provider  String?      @db.VarChar(50)  // 'azure_ad', 'okta', 'google'
+  sso_id        String?      @db.VarChar(255)
+  
+  merchant      merchants?   @relation(fields: [merchant_id], references: [id])
+  audit_logs    audit_logs[]
+  sessions      sessions[]
+
+  @@index([email])
+  @@index([merchant_id])
+  @@index([sso_provider, sso_id])
 }
+
+// Role hierarchy enum for reference (used in application code)
+// super_admin - Platform admin, full access
+// admin - Merchant admin, manage users and all data
+// analyst - Can view all data, create reports
+// viewer - Read-only access to dashboards
 
 model transactions {
   id               String     @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
@@ -55,4 +74,55 @@ model daily_metrics {
   merchant           merchants? @relation(fields: [merchant_id], references: [id])
 
   @@unique([merchant_id, date])
+}
+
+// Audit logging for compliance
+model audit_logs {
+  id          String     @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  user_id     String?    @db.Uuid
+  merchant_id String?    @db.Uuid
+  action      String     @db.VarChar(100)  // 'login', 'view_dashboard', 'export_data', 'update_settings'
+  resource    String?    @db.VarChar(100)  // 'transactions', 'analytics', 'users', 'settings'
+  resource_id String?    @db.VarChar(255)
+  ip_address  String?    @db.VarChar(45)
+  user_agent  String?    @db.Text
+  metadata    Json?      // Additional context
+  created_at  DateTime   @default(now())
+
+  user        users?     @relation(fields: [user_id], references: [id])
+  merchant    merchants? @relation(fields: [merchant_id], references: [id])
+
+  @@index([user_id])
+  @@index([merchant_id])
+  @@index([action])
+  @@index([created_at])
+}
+
+// Session management for security
+model sessions {
+  id         String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  user_id    String    @db.Uuid
+  token      String    @unique @db.VarChar(500)
+  expires_at DateTime
+  ip_address String?   @db.VarChar(45)
+  user_agent String?   @db.Text
+  created_at DateTime  @default(now())
+
+  user       users     @relation(fields: [user_id], references: [id])
+
+  @@index([user_id])
+  @@index([token])
+  @@index([expires_at])
+}
+
+// Permission definitions per role
+model role_permissions {
+  id         String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  role       String   @db.VarChar(50)   // 'super_admin', 'admin', 'analyst', 'viewer'
+  resource   String   @db.VarChar(100)  // 'dashboard', 'transactions', 'analytics', 'users', 'settings'
+  action     String   @db.VarChar(50)   // 'view', 'create', 'edit', 'delete', 'export'
+  created_at DateTime @default(now())
+
+  @@unique([role, resource, action])
+  @@index([role])
 }

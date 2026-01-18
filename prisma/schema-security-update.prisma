@@ -1,0 +1,80 @@
+// Add these models to your existing schema.prisma
+
+// Enhanced User model with proper roles
+model users {
+  id            String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  email         String    @unique @db.VarChar(255)
+  password_hash String?   @db.VarChar(255)
+  name          String?   @db.VarChar(255)
+  merchant_id   String?   @db.Uuid
+  role          Role      @default(viewer)
+  is_active     Boolean   @default(true)
+  last_login    DateTime?
+  created_at    DateTime? @default(now())
+  updated_at    DateTime? @updatedAt
+  
+  // SSO fields
+  sso_provider  String?   @db.VarChar(50)  // 'azure_ad', 'okta', 'google'
+  sso_id        String?   @db.VarChar(255)
+  
+  merchant      merchants? @relation(fields: [merchant_id], references: [id])
+  audit_logs    audit_logs[]
+  
+  @@index([email])
+  @@index([merchant_id])
+  @@index([sso_provider, sso_id])
+}
+
+enum Role {
+  super_admin  // Platform admin - full access
+  admin        // Merchant admin - manage users, all data
+  analyst      // Can view all data, create reports
+  viewer       // Read-only access to dashboards
+}
+
+// Audit logging for compliance
+model audit_logs {
+  id          String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  user_id     String?  @db.Uuid
+  merchant_id String?  @db.Uuid
+  action      String   @db.VarChar(100)  // 'login', 'view_dashboard', 'export_data', etc.
+  resource    String?  @db.VarChar(100)  // 'transactions', 'analytics', etc.
+  resource_id String?  @db.VarChar(255)
+  ip_address  String?  @db.VarChar(45)
+  user_agent  String?  @db.Text
+  metadata    Json?    // Additional context
+  created_at  DateTime @default(now())
+  
+  user        users?   @relation(fields: [user_id], references: [id])
+  merchant    merchants? @relation(fields: [merchant_id], references: [id])
+  
+  @@index([user_id])
+  @@index([merchant_id])
+  @@index([action])
+  @@index([created_at])
+}
+
+// Session management for security
+model sessions {
+  id           String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  user_id      String   @db.Uuid
+  token        String   @unique @db.VarChar(500)
+  expires_at   DateTime
+  ip_address   String?  @db.VarChar(45)
+  user_agent   String?  @db.Text
+  created_at   DateTime @default(now())
+  
+  @@index([user_id])
+  @@index([token])
+  @@index([expires_at])
+}
+
+// Permission definitions per role
+model role_permissions {
+  id         String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  role       Role
+  resource   String   @db.VarChar(100)  // 'dashboard', 'analytics', 'users', 'settings'
+  action     String   @db.VarChar(50)   // 'view', 'create', 'edit', 'delete', 'export'
+  
+  @@unique([role, resource, action])
+}

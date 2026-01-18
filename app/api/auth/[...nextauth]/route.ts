@@ -1,8 +1,16 @@
 import NextAuth from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials"
+import AzureADProvider from "next-auth/providers/azure-ad"
 
 const handler = NextAuth({
   providers: [
+    // Azure AD SSO Provider
+    AzureADProvider({
+      clientId: process.env.AZURE_AD_CLIENT_ID!,
+      clientSecret: process.env.AZURE_AD_CLIENT_SECRET!,
+      tenantId: process.env.AZURE_AD_TENANT_ID!,
+    }),
+    // Keep existing Credentials provider for demo/fallback
     CredentialsProvider({
       name: 'Credentials',
       credentials: {
@@ -28,21 +36,20 @@ const handler = NextAuth({
             merchant: 'Lidl'
           }
         ]
-        
+
         const user = users.find(
           u => u.email === credentials?.email && u.password === credentials?.password
         )
-        
+
         if (user) {
-          // Return user with merchant property
           return {
             id: user.id,
             email: user.email,
             name: user.name,
             merchant: user.merchant
-          } as any // Type assertion to bypass TypeScript check
+          } as any
         }
-        
+
         return null
       }
     })
@@ -51,16 +58,18 @@ const handler = NextAuth({
     signIn: '/login',
   },
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, account }) {
       if (user) {
-        // Add merchant to token
         token.merchant = (user as any).merchant
+        // For Azure AD users, extract info from profile
+        if (account?.provider === 'azure-ad') {
+          token.merchant = 'Enterprise' // Default for SSO users
+        }
       }
       return token
     },
     async session({ session, token }) {
       if (session.user) {
-        // Add merchant to session
         (session.user as any).merchant = token.merchant
       }
       return session

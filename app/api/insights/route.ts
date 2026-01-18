@@ -1,3 +1,4 @@
+import { logApiAccess } from '@/lib/security/audit';
 import { NextRequest, NextResponse } from 'next/server'
 import { InsightsEngine } from '@/lib/insights-engine'
 import { DataLoader } from '@/lib/data-loader'

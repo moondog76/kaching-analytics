@@ -140,7 +140,7 @@ export async function detectAnomalies(
   const metrics: MetricType[] = ['transactions', 'revenue', 'customers', 'cashback', 'avg_transaction']
   
   // Get merchant name
-  const merchant = await prisma.merchant.findUnique({
+  const merchant = await prisma.merchants.findUnique({
     where: { id: merchantId },
     select: { name: true }
   })
@@ -197,7 +197,7 @@ export async function detectAnomalies(
 export async function detectAnomaliesForAllMerchants(
   config: AnomalyConfig = DEFAULT_CONFIG
 ): Promise<Map<string, Anomaly[]>> {
-  const merchants = await prisma.merchant.findMany({
+  const merchants = await prisma.merchants.findMany({
     select: { id: true }
   })
   

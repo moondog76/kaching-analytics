@@ -6,7 +6,7 @@ export async function getMerchantDataContext(
   merchantId: string,
   days: number = 30
 ): Promise<DataContext | null> {
-  const merchant = await prisma.merchant.findUnique({
+  const merchant = await prisma.merchants.findUnique({
     where: { id: merchantId }
   })
   

@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
     }
     
     // Verify merchant exists
-    const merchant = await prisma.merchant.findUnique({
+    const merchant = await prisma.merchants.findUnique({
       where: { id: merchantId }
     })
     

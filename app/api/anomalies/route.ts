@@ -1,48 +1,43 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { AnomalyDetector } from '@/lib/anomaly-detector'
-import { DataLoader } from '@/lib/data-loader'
-
+import { getServerSession } from 'next-auth'
+import { detectAnomalies } from '@/lib/ai/anomaly-detector'
+import { prisma } from '@/lib/db'
 
 export async function GET(request: NextRequest) {
   try {
-    // Load data
-    const data = DataLoader.loadDemoData()
-    const { historical } = DataLoader.processTransactions([])
+    const session = await getServerSession()
     
-    // Detect anomalies
-    const anomalies = await AnomalyDetector.detectAnomalies(
-      data.carrefour,
-      historical,
-      new Date()
-    )
+    if (!session?.user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
     
-    // Generate alerts
-    const alerts = await AnomalyDetector.generateAlerts(
-      anomalies,
-      data.carrefour.merchant_name
-    )
+    const { searchParams } = new URL(request.url)
+    const merchantId = searchParams.get('merchantId')
     
-    return NextResponse.json({
-      success: true,
-      anomalies,
-      alerts,
-      detected_at: new Date().toISOString(),
-      summary: {
-        total_anomalies: anomalies.length,
-        critical_alerts: alerts.filter(a => a.severity === 'critical').length,
-        warning_alerts: alerts.filter(a => a.severity === 'warning').length
-      }
+    if (!merchantId) {
+      return NextResponse.json({ error: 'merchantId required' }, { status: 400 })
+    }
+    
+    // Verify merchant exists
+    const merchant = await prisma.merchant.findUnique({
+      where: { id: merchantId }
     })
     
-  } catch (error) {
-    console.error('Anomaly detection error:', error)
+    if (!merchant) {
+      return NextResponse.json({ error: 'Merchant not found' }, { status: 404 })
+    }
     
-    return NextResponse.json(
-      { 
-        error: 'Failed to detect anomalies',
-        details: error instanceof Error ? error.message : 'Unknown error'
-      },
-      { status: 500 }
-    )
+    const anomalies = await detectAnomalies(merchantId)
+    
+    return NextResponse.json({
+      merchantId,
+      merchantName: merchant.name,
+      anomalies,
+      count: anomalies.length,
+      detectedAt: new Date().toISOString()
+    })
+  } catch (error) {
+    console.error('Error detecting anomalies:', error)
+    return NextResponse.json({ error: 'Failed to detect anomalies' }, { status: 500 })
   }
 }

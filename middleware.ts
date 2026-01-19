@@ -13,6 +13,7 @@ export const config = {
     '/api/chat',
     '/api/insights',
     '/api/forecast',
-    '/api/anomalies'
+    '/api/anomalies',
+    '/api/recommendations'
   ]
 }

@@ -5,6 +5,7 @@ import { signOut, useSession } from 'next-auth/react'
 import AIChat from '@/components/AIChat'
 import InsightsPanel from '@/components/InsightsPanel'
 import { AnomalyAlerts } from '@/components/ai/AnomalyAlerts'
+import { RecommendationCards } from '@/components/ai/RecommendationCards'
 import DrillableMetrics from '@/components/DrillableMetrics'
 import { MerchantMetrics, CompetitorData } from '@/lib/types'
 
@@ -119,6 +120,9 @@ useEffect(() => {
           
           {/* Anomaly Detection */}
           <AnomalyAlerts merchantId="carrefour-ro" />
+          
+          {/* AI Recommendations */}
+          <RecommendationCards merchantId="carrefour-ro" />
           
           {/* Campaign Overview */}
           <div 

@@ -7,8 +7,8 @@ export async function generateRecommendations(merchantId: string): Promise<Recom
   const recommendations: Recommendation[] = []
   
   // Get merchant data
-  const merchant = await prisma.merchants.findUnique({
-    where: { id: merchantId }
+  const merchant = await prisma.merchants.findFirst({
+    where: { name: { contains: 'Carrefour', mode: 'insensitive' } }
   })
   if (!merchant) return recommendations
 

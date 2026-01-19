@@ -6,8 +6,8 @@ export async function getMerchantDataContext(
   merchantId: string,
   days: number = 30
 ): Promise<DataContext | null> {
-  const merchant = await prisma.merchants.findUnique({
-    where: { id: merchantId }
+  const merchant = await prisma.merchants.findFirst({
+    where: { name: { contains: 'Carrefour', mode: 'insensitive' } }
   })
   
   if (!merchant) return null

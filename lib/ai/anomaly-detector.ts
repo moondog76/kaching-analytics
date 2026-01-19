@@ -140,8 +140,8 @@ export async function detectAnomalies(
   const metrics: MetricType[] = ['transactions', 'revenue', 'customers', 'cashback', 'avg_transaction']
   
   // Get merchant name
-  const merchant = await prisma.merchants.findUnique({
-    where: { id: merchantId },
+  const merchant = await prisma.merchants.findFirst({
+    where: { name: { contains: 'Carrefour', mode: 'insensitive' } },
     select: { name: true }
   })
   

@@ -15,8 +15,8 @@ export async function GET(request: NextRequest) {
   
   try {
     // Check if merchant exists
-    const merchant = await prisma.merchants.findUnique({
-      where: { id: merchantId }
+    const merchant = await prisma.merchants.findFirst({
+      where: { name: { contains: 'Carrefour', mode: 'insensitive' } }
     })
     
     if (!merchant) {

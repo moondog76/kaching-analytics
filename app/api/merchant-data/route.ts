@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { DataLoader } from '@/lib/data-loader'
+import { logAuditEvent } from '@/lib/security/audit'
 
 export async function GET(request: NextRequest) {
   try {
@@ -16,6 +17,7 @@ export async function GET(request: NextRequest) {
     const dbData = await DataLoader.loadMerchantDataByEmail(session.user.email)
     
     if (dbData) {
+    logAuditEvent({ userId: session.user.email || "unknown", merchantId: session.user.merchant || "unknown", action: "view_dashboard", resource: "merchant_data" }).catch(() => {})
       return NextResponse.json(dbData)
     }
     

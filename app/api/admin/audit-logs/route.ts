@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
-import { getAuditLogs } from '@/lib/security/audit'
+import { getAuditLogs, AuditAction } from '@/lib/security/audit'
 
 export async function GET(request: NextRequest) {
   try {
@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
     // Get audit logs with filters
     const result = await getAuditLogs({ 
       limit,
-      action: action as 'login' | 'logout' | 'failed_login' | 'password_change' | 'role_change' | 'dashboard_view' | 'analytics_view' | 'transactions_view' | 'data_export' | 'api_access' | undefined,
+      action: action as AuditAction | undefined,
       userId,
       merchantId 
     })

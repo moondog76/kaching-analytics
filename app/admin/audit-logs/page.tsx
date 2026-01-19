@@ -35,11 +35,15 @@ const ACTION_COLORS: Record<string, string> = {
   failed_login: 'bg-red-100 text-red-800',
   password_change: 'bg-yellow-100 text-yellow-800',
   role_change: 'bg-purple-100 text-purple-800',
-  dashboard_view: 'bg-blue-100 text-blue-800',
-  analytics_view: 'bg-blue-100 text-blue-800',
-  transactions_view: 'bg-blue-100 text-blue-800',
-  data_export: 'bg-orange-100 text-orange-800',
+  view_dashboard: 'bg-blue-100 text-blue-800',
+  view_analytics: 'bg-blue-100 text-blue-800',
+  view_transactions: 'bg-blue-100 text-blue-800',
+  export_data: 'bg-orange-100 text-orange-800',
   api_access: 'bg-indigo-100 text-indigo-800',
+  create_user: 'bg-emerald-100 text-emerald-800',
+  update_user: 'bg-cyan-100 text-cyan-800',
+  delete_user: 'bg-red-100 text-red-800',
+  update_settings: 'bg-amber-100 text-amber-800',
 }
 
 const ACTION_ICONS: Record<string, string> = {
@@ -48,11 +52,15 @@ const ACTION_ICONS: Record<string, string> = {
   failed_login: '❌',
   password_change: '🔑',
   role_change: '👤',
-  dashboard_view: '📊',
-  analytics_view: '📈',
-  transactions_view: '💳',
-  data_export: '📤',
+  view_dashboard: '📊',
+  view_analytics: '📈',
+  view_transactions: '💳',
+  export_data: '📤',
   api_access: '🔌',
+  create_user: '➕',
+  update_user: '✏️',
+  delete_user: '🗑️',
+  update_settings: '⚙️',
 }
 
 export default function AuditLogsPage() {

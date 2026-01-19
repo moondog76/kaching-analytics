@@ -49,7 +49,7 @@ export function AnomalyAlerts({ merchantId }: AnomalyAlertsProps) {
     setLoading(true)
     setError(null)
     try {
-      const response = await fetch(`/api/anomalies?merchantId=${merchantId}`)
+      const response = await fetch(`/api/anomalies?merchantId=${merchantId}`, { credentials: 'include' })
       if (!response.ok) throw new Error('Failed to fetch anomalies')
       const data = await response.json()
       setAnomalies(data.anomalies || [])

@@ -61,7 +61,7 @@ export async function getMerchantDataContext(
       date: dm.date,
       transactions: dm.transaction_count,
       revenue: Number(dm.total_revenue),
-      customers: dm.unique_customers
+      customers: dm.unique_customers || 0
     }))
   }
 }

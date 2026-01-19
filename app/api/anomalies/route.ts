@@ -86,7 +86,7 @@ export async function GET(request: NextRequest) {
             value,
             expectedValue: stats.mean,
             deviation: ((value - stats.mean) / stats.mean) * 100,
-            detectedAt: recentDays[i].date,
+            date: recentDays[i].date,
             description: `${metric} ${isSpike ? 'spike' : 'drop'}: ${value.toFixed(0)} vs expected ${stats.mean.toFixed(0)}`,
             recommendation: isSpike 
               ? `Investigate what caused the ${metric} increase` 
@@ -101,7 +101,7 @@ export async function GET(request: NextRequest) {
       merchantName: merchant.name,
       anomalies,
       count: anomalies.length,
-      detectedAt: new Date().toISOString()
+      date: new Date().toISOString()
     })
     
   } catch (error) {

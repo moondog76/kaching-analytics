@@ -17,7 +17,7 @@ export async function getMerchantDataContext(
   startDate.setDate(startDate.getDate() - days)
   
   // Get aggregated metrics
-  const transactions = await prisma.transaction.aggregate({
+  const transactions = await prisma.transactions.aggregate({
     where: {
       merchant_id: merchantId,
       transaction_date: { gte: startDate, lte: endDate }
@@ -27,7 +27,7 @@ export async function getMerchantDataContext(
   })
   
   // Get unique customers
-  const customers = await prisma.transaction.groupBy({
+  const customers = await prisma.transactions.groupBy({
     by: ['customer_id'],
     where: {
       merchant_id: merchantId,

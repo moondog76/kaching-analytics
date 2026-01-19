@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
     const dbData = await DataLoader.loadMerchantDataByEmail(session.user.email)
     
     if (dbData) {
-    logAuditEvent({ userId: session.user.email || "unknown", merchantId: session.user.merchant || "unknown", action: "view_dashboard", resource: "merchant_data" }).catch(() => {})
+    logAuditEvent({ userId: session.user.email || "unknown", merchantId: undefined, action: "view_dashboard", resource: "merchant_data" }).catch(() => {})
       return NextResponse.json(dbData)
     }
     

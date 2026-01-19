@@ -7,6 +7,7 @@ export type AnomalySeverity = 'low' | 'medium' | 'high' | 'critical'
 export type AnomalyType = 'spike' | 'drop' | 'trend_change' | 'unusual_pattern'
 
 export interface Anomaly {
+  merchantId: string
   id: string
   metric: MetricType
   type: AnomalyType

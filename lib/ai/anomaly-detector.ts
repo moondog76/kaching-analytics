@@ -172,8 +172,8 @@ export async function detectAnomalies(
         severity,
         metric,
         merchantId,
-        merchantName: merchant?.name,
-        detectedAt: new Date(),
+        
+        date: new Date(),
         value: latestValue,
         expectedValue: stats.mean,
         deviation: zScore,

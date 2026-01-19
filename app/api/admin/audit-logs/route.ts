@@ -31,24 +31,11 @@ export async function GET(request: NextRequest) {
     const today = new Date()
     today.setHours(0, 0, 0, 0)
     
-    const todayLogs = logs.filter((log: { created_at: string | Date }) => 
-      new Date(log.created_at) >= today
-    )
-    const uniqueUsers = new Set(logs.map((log: { user_id: string }) => log.user_id)).size
+    const todayLogs = logs.filter((log) => new Date(log.created_at) >= today)
+    const uniqueUsers = new Set(logs.map((log) => log.user_id).filter(Boolean)).size
     
     // Transform snake_case to camelCase for frontend
-    const transformedLogs = logs.map((log: {
-      id: string
-      action: string
-      resource: string
-      resource_id: string | null
-      metadata: Record<string, unknown> | null
-      ip_address: string | null
-      user_agent: string | null
-      created_at: string | Date
-      user: { id: string; name: string | null; email: string } | null
-      merchant: { id: string; name: string } | null
-    }) => ({
+    const transformedLogs = logs.map((log) => ({
       id: log.id,
       action: log.action,
       resource: log.resource,

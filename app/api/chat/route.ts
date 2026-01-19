@@ -1,4 +1,3 @@
-import { logAuditEvent } from '@/lib/security/audit';
 import { NextRequest, NextResponse } from 'next/server'
 import { AIAgent } from '@/lib/ai-agent'
 import { DataLoader } from '@/lib/data-loader'

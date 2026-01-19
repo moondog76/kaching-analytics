@@ -118,7 +118,7 @@ useEffect(() => {
           <InsightsPanel />
           
           {/* Anomaly Detection */}
-          <AnomalyAlerts merchantId={merchant.id} />
+          <AnomalyAlerts merchantId={data?.carrefour?.merchant_id || "lidl-ro"} />
           
           {/* Campaign Overview */}
           <div 

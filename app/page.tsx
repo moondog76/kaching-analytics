@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { signOut, useSession } from 'next-auth/react'
 import AIChat from '@/components/AIChat'
 import InsightsPanel from '@/components/InsightsPanel'
+import { AnomalyAlerts } from '@/components/ai/AnomalyAlerts'
 import DrillableMetrics from '@/components/DrillableMetrics'
 import { MerchantMetrics, CompetitorData } from '@/lib/types'
 

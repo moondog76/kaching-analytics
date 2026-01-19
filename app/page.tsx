@@ -116,6 +116,9 @@ useEffect(() => {
           {/* AI Insights */}
           <InsightsPanel />
           
+          {/* Anomaly Detection */}
+          <AnomalyAlerts merchantId={merchant.id} />
+          
           {/* Campaign Overview */}
           <div 
             className="bg-[#141932] border border-[#252B4A] rounded-xl p-8"

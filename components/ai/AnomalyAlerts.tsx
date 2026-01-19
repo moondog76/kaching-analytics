@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { AlertTriangle, TrendingUp, TrendingDown, Activity, RefreshCw } from 'lucide-react'
 
 interface Anomaly {
   id: string
@@ -34,10 +33,10 @@ const severityIcons = {
 }
 
 const typeIcons = {
-  spike: TrendingUp,
-  drop: TrendingDown,
-  trend_change: Activity,
-  unusual_pattern: AlertTriangle
+  spike: '📈',
+  drop: '📉',
+  trend_change: '🔄',
+  unusual_pattern: '⚡'
 }
 
 export function AnomalyAlerts({ merchantId }: AnomalyAlertsProps) {
@@ -72,7 +71,7 @@ export function AnomalyAlerts({ merchantId }: AnomalyAlertsProps) {
     return (
       <div className="bg-slate-800/50 rounded-xl p-6 border border-slate-700">
         <div className="flex items-center gap-2 mb-4">
-          <AlertTriangle className="w-5 h-5 text-orange-400" />
+          <span className="text-xl">⚠️</span>
           <h3 className="text-lg font-semibold text-white">Anomaly Detection</h3>
         </div>
         <div className="animate-pulse space-y-3">
@@ -88,12 +87,10 @@ export function AnomalyAlerts({ merchantId }: AnomalyAlertsProps) {
       <div className="bg-slate-800/50 rounded-xl p-6 border border-slate-700">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <AlertTriangle className="w-5 h-5 text-orange-400" />
+            <span className="text-xl">⚠️</span>
             <h3 className="text-lg font-semibold text-white">Anomaly Detection</h3>
           </div>
-          <button onClick={fetchAnomalies} className="text-slate-400 hover:text-white">
-            <RefreshCw className="w-4 h-4" />
-          </button>
+          <button onClick={fetchAnomalies} className="text-slate-400 hover:text-white">🔄</button>
         </div>
         <p className="text-red-400">{error}</p>
       </div>
@@ -104,7 +101,7 @@ export function AnomalyAlerts({ merchantId }: AnomalyAlertsProps) {
     <div className="bg-slate-800/50 rounded-xl p-6 border border-slate-700">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <AlertTriangle className="w-5 h-5 text-orange-400" />
+          <span className="text-xl">⚠️</span>
           <h3 className="text-lg font-semibold text-white">Anomaly Detection</h3>
           {anomalies.length > 0 && (
             <span className="bg-orange-500/20 text-orange-400 text-xs px-2 py-0.5 rounded-full">
@@ -114,10 +111,10 @@ export function AnomalyAlerts({ merchantId }: AnomalyAlertsProps) {
         </div>
         <button 
           onClick={fetchAnomalies} 
-          className="text-slate-400 hover:text-white transition-colors"
+          className="text-slate-400 hover:text-white transition-colors text-lg"
           title="Refresh"
         >
-          <RefreshCw className="w-4 h-4" />
+          🔄
         </button>
       </div>
 
@@ -130,7 +127,6 @@ export function AnomalyAlerts({ merchantId }: AnomalyAlertsProps) {
       ) : (
         <div className="space-y-3">
           {anomalies.map((anomaly) => {
-            const Icon = typeIcons[anomaly.type]
             const isExpanded = expanded === anomaly.id
             
             return (
@@ -143,7 +139,7 @@ export function AnomalyAlerts({ merchantId }: AnomalyAlertsProps) {
                   <span className="text-xl">{severityIcons[anomaly.severity]}</span>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
-                      <Icon className="w-4 h-4" />
+                      <span>{typeIcons[anomaly.type]}</span>
                       <span className="font-medium capitalize">{anomaly.type.replace('_', ' ')}</span>
                       <span className="text-xs opacity-70 uppercase">{anomaly.severity}</span>
                     </div>

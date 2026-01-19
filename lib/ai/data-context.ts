@@ -17,7 +17,7 @@ export async function getMerchantDataContext(
   startDate.setDate(startDate.getDate() - days)
   
   // Get aggregated metrics
-  const transactions = await prisma.transactions.aggregate({
+  const txns = await prisma.transactions.aggregate({
     where: {
       merchant_id: merchantId,
       transaction_date: { gte: startDate, lte: endDate }
@@ -44,9 +44,9 @@ export async function getMerchantDataContext(
     orderBy: { date: 'asc' }
   })
   
-  const totalRevenue = Number(transactions._sum.amount || 0)
-  const totalCashback = Number(transactions._sum.cashback_amount || 0)
-  const totalTransactions = transactions._count || 0
+  const totalRevenue = Number(txns._sum.amount || 0)
+  const totalCashback = Number(txns._sum.cashback_amount || 0)
+  const totalTransactions = txns._count || 0
   
   return {
     merchantId,
@@ -59,8 +59,8 @@ export async function getMerchantDataContext(
     avgTransaction: totalTransactions > 0 ? totalRevenue / totalTransactions : 0,
     dailyMetrics: dailyMetrics.map(dm => ({
       date: dm.date,
-      transactions: dm.transaction_count,
-      revenue: Number(dm.total_revenue),
+      transactions: dm.transactions_count || 0,
+      revenue: Number(dm.revenue || 0),
       customers: dm.unique_customers || 0
     }))
   }
@@ -87,20 +87,20 @@ export async function getMetricHistory(
     let value: number
     switch (metric) {
       case 'transactions':
-        value = dm.transaction_count
+        value = dm.transactions_count || 0
         break
       case 'revenue':
-        value = Number(dm.total_revenue)
+        value = Number(dm.revenue || 0)
         break
       case 'customers':
-        value = dm.unique_customers
+        value = dm.unique_customers || 0
         break
       case 'cashback':
-        value = Number(dm.total_cashback)
+        value = Number(dm.cashback_paid || 0)
         break
       case 'avg_transaction':
-        value = dm.transaction_count > 0 
-          ? Number(dm.total_revenue) / dm.transaction_count 
+        value = (dm.transactions_count || 0) > 0 
+          ? Number(dm.revenue || 0) / (dm.transactions_count || 1)
           : 0
         break
       default:

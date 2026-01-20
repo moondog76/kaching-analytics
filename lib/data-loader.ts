@@ -48,6 +48,35 @@ export class DataLoader {
   }
 
   /**
+   * Load merchant data by merchant ID (for multi-tenant support)
+   */
+  static async loadMerchantDataById(merchantId: string): Promise<{
+    carrefour: MerchantMetrics
+    competitors: CompetitorData[]
+    historical: MerchantMetrics[]
+  } | null> {
+    try {
+      // Get current merchant metrics
+      const merchantData = await this.getMerchantMetrics(merchantId)
+
+      // Get competitors
+      const competitors = await this.getCompetitors(merchantId)
+
+      // Get historical data (last 30 days)
+      const historical = await this.getHistoricalMetrics(merchantId, 30)
+
+      return {
+        carrefour: merchantData, // Keep "carrefour" key for backward compatibility
+        competitors,
+        historical
+      }
+    } catch (error) {
+      console.error('Error loading merchant data by ID:', error)
+      return null
+    }
+  }
+
+  /**
    * Get metrics for a specific merchant - optimized
    */
   static async getMerchantMetrics(merchantId: string): Promise<MerchantMetrics> {

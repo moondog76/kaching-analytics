@@ -2,37 +2,52 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { Anomaly, MetricType } from '@/lib/ai/types'
 import { calculateStatistics } from '@/lib/ai/data-context'
+import { getCurrentUser, canAccessMerchant } from '@/lib/auth'
 
 const METRICS: MetricType[] = ['transactions', 'revenue', 'customers', 'cashback']
 const Z_THRESHOLD = 2.0
 
 export async function GET(request: NextRequest) {
-  const merchantId = request.nextUrl.searchParams.get('merchantId')
-  
+  // Auth check
+  const user = await getCurrentUser()
+  if (!user) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  // Get merchantId from params or use user's default
+  const requestedMerchantId = request.nextUrl.searchParams.get('merchantId')
+  const merchantId = requestedMerchantId || user.merchantId
+
   if (!merchantId) {
     return NextResponse.json({ error: 'merchantId required' }, { status: 400 })
   }
-  
+
+  // Permission check
+  const hasAccess = await canAccessMerchant(user, merchantId)
+  if (!hasAccess) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
+
   try {
     // Check if merchant exists
     const merchant = await prisma.merchants.findUnique({
       where: { id: merchantId }
     })
-    
+
     if (!merchant) {
-      return NextResponse.json({ 
-        error: 'Merchant not found', 
+      return NextResponse.json({
+        error: 'Merchant not found',
         merchantId,
         anomalies: [],
         count: 0
       })
     }
-    
+
     // Get daily metrics for the last 90 days
     const endDate = new Date()
     const startDate = new Date()
     startDate.setDate(startDate.getDate() - 90)
-    
+
     const dailyMetrics = await prisma.daily_metrics.findMany({
       where: {
         merchant_id: merchantId,
@@ -40,7 +55,7 @@ export async function GET(request: NextRequest) {
       },
       orderBy: { date: 'asc' }
     })
-    
+
     if (dailyMetrics.length < 7) {
       return NextResponse.json({
         merchantId,
@@ -50,10 +65,10 @@ export async function GET(request: NextRequest) {
         message: `Insufficient data: only ${dailyMetrics.length} days of metrics found (need at least 7)`
       })
     }
-    
+
     // Detect anomalies
     const anomalies: Anomaly[] = []
-    
+
     for (const metric of METRICS) {
       const values = dailyMetrics.map(dm => {
         switch (metric) {
@@ -64,17 +79,17 @@ export async function GET(request: NextRequest) {
           default: return 0
         }
       })
-      
+
       const stats = calculateStatistics(values)
       if (stats.stdDev === 0) continue
-      
+
       // Check last 7 days for anomalies
       const recentDays = dailyMetrics.slice(-7)
       const recentValues = values.slice(-7)
-      
+
       recentValues.forEach((value, i) => {
         const zScore = (value - stats.mean) / stats.stdDev
-        
+
         if (Math.abs(zScore) > Z_THRESHOLD) {
           const isSpike = zScore > 0
           anomalies.push({
@@ -88,14 +103,14 @@ export async function GET(request: NextRequest) {
             deviation: ((value - stats.mean) / stats.mean) * 100,
             date: recentDays[i].date,
             description: `${metric} ${isSpike ? 'spike' : 'drop'}: ${value.toFixed(0)} vs expected ${stats.mean.toFixed(0)}`,
-            recommendation: isSpike 
-              ? `Investigate what caused the ${metric} increase` 
+            recommendation: isSpike
+              ? `Investigate what caused the ${metric} increase`
               : `Review factors that may have reduced ${metric}`
           })
         }
       })
     }
-    
+
     return NextResponse.json({
       merchantId,
       merchantName: merchant.name,
@@ -103,10 +118,10 @@ export async function GET(request: NextRequest) {
       count: anomalies.length,
       date: new Date().toISOString()
     })
-    
+
   } catch (error) {
     console.error('Anomaly detection error:', error)
-    return NextResponse.json({ 
+    return NextResponse.json({
       error: 'Failed to detect anomalies',
       details: error instanceof Error ? error.message : 'Unknown error'
     }, { status: 500 })

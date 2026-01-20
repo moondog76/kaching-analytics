@@ -60,6 +60,10 @@ model transactions {
   category         String?
   created_at       DateTime?  @default(now())
   merchant         merchants? @relation(fields: [merchant_id], references: [id])
+
+  @@index([merchant_id])
+  @@index([merchant_id, transaction_date])
+  @@index([transaction_date])
 }
 
 model daily_metrics {

@@ -1,26 +1,56 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { signOut, useSession } from 'next-auth/react'
+import { useSearchParams } from 'next/navigation'
 import AIChat from '@/components/AIChat'
 import InsightsPanel from '@/components/InsightsPanel'
 import { AnomalyAlerts } from '@/components/ai/AnomalyAlerts'
 import { RecommendationCards } from '@/components/ai/RecommendationCards'
 import { ExecutiveBriefing } from '@/components/ai/ExecutiveBriefing'
 import DrillableMetrics from '@/components/DrillableMetrics'
+import MerchantSelector from '@/components/MerchantSelector'
 import { MerchantMetrics, CompetitorData } from '@/lib/types'
 
-export default function Dashboard() {
+// Wrap page in Suspense for useSearchParams
+export default function DashboardPage() {
+  return (
+    <Suspense fallback={<DashboardLoading />}>
+      <Dashboard />
+    </Suspense>
+  )
+}
+
+function DashboardLoading() {
+  return (
+    <div className="min-h-screen bg-[#0A0E27] flex items-center justify-center">
+      <div className="flex gap-3">
+        <div className="w-4 h-4 bg-[#FF6B35] rounded-full animate-bounce" style={{ animationDelay: '0s' }} />
+        <div className="w-4 h-4 bg-[#FF6B35] rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
+        <div className="w-4 h-4 bg-[#FF6B35] rounded-full animate-bounce" style={{ animationDelay: '0.4s' }} />
+      </div>
+    </div>
+  )
+}
+
+function Dashboard() {
   const { data: session } = useSession()
+  const searchParams = useSearchParams()
   const [data, setData] = useState<{
     carrefour: MerchantMetrics
     competitors: CompetitorData[]
   } | null>(null)
-  
-useEffect(() => {
+
+  // Get merchantId from URL params
+  const merchantId = searchParams.get('merchantId')
+
+  useEffect(() => {
     async function loadData() {
       try {
-        const response = await fetch('/api/merchant-data')
+        const url = merchantId
+          ? `/api/merchant-data?merchantId=${merchantId}`
+          : '/api/merchant-data'
+        const response = await fetch(url)
         const data = await response.json()
         setData(data)
       } catch (error) {
@@ -28,7 +58,7 @@ useEffect(() => {
       }
     }
     loadData()
-  }, [session])
+  }, [session, merchantId])
   
   if (!data) {
     return (
@@ -59,9 +89,7 @@ useEffect(() => {
           <div className="max-w-7xl mx-auto px-8 py-5 flex justify-between items-center">
             <div className="flex items-center gap-6">
               <div className="flex items-center gap-4">
-                <div className="text-3xl font-bold text-[#0057A6]">
-                  {data.carrefour.merchant_name}
-                </div>
+                <MerchantSelector />
                 <div className="text-sm text-[#5A5F7D]">Analytics</div>
               </div>
               

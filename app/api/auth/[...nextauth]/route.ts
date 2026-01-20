@@ -1,16 +1,46 @@
 import NextAuth from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials"
 import AzureADProvider from "next-auth/providers/azure-ad"
+import { prisma } from "@/lib/db"
+import bcrypt from "bcryptjs"
+
+// Extend the built-in types
+declare module "next-auth" {
+  interface User {
+    merchantId?: string
+    merchantName?: string
+    role?: string
+  }
+  interface Session {
+    user: {
+      id?: string
+      email?: string
+      name?: string
+      merchantId?: string
+      merchantName?: string
+      role?: string
+    }
+  }
+}
+
+declare module "next-auth/jwt" {
+  interface JWT {
+    merchantId?: string
+    merchantName?: string
+    role?: string
+    userId?: string
+  }
+}
 
 const handler = NextAuth({
   providers: [
     // Azure AD SSO Provider
     AzureADProvider({
-      clientId: process.env.AZURE_AD_CLIENT_ID!,
-      clientSecret: process.env.AZURE_AD_CLIENT_SECRET!,
-      tenantId: process.env.AZURE_AD_TENANT_ID!,
+      clientId: process.env.AZURE_AD_CLIENT_ID || "",
+      clientSecret: process.env.AZURE_AD_CLIENT_SECRET || "",
+      tenantId: process.env.AZURE_AD_TENANT_ID || "",
     }),
-    // Keep existing Credentials provider for demo/fallback
+    // Credentials provider with database lookup
     CredentialsProvider({
       name: 'Credentials',
       credentials: {
@@ -18,39 +48,54 @@ const handler = NextAuth({
         password: { label: "Password", type: "password" }
       },
       async authorize(credentials) {
-        // For demo: hardcoded users
-        // In production, check against database
-        const users = [
-          {
-            id: '1',
-            email: 'carrefour@demo.com',
-            password: 'demo123',
-            name: 'Carrefour Admin',
-            merchant: 'Carrefour'
-          },
-          {
-            id: '2',
-            email: 'lidl@demo.com',
-            password: 'demo123',
-            name: 'Lidl Admin',
-            merchant: 'Lidl'
+        if (!credentials?.email || !credentials?.password) {
+          return null
+        }
+
+        try {
+          // Look up user in database
+          const user = await prisma.users.findUnique({
+            where: { email: credentials.email },
+            include: { merchant: true }
+          })
+
+          if (!user || !user.is_active) {
+            return null
           }
-        ]
 
-        const user = users.find(
-          u => u.email === credentials?.email && u.password === credentials?.password
-        )
+          // Check password
+          let isValidPassword = false
 
-        if (user) {
+          if (user.password_hash) {
+            // Production: verify hashed password
+            isValidPassword = await bcrypt.compare(credentials.password, user.password_hash)
+          } else {
+            // Demo mode: allow demo123 for users without password_hash
+            isValidPassword = credentials.password === 'demo123'
+          }
+
+          if (!isValidPassword) {
+            return null
+          }
+
+          // Update last_login
+          await prisma.users.update({
+            where: { id: user.id },
+            data: { last_login: new Date() }
+          })
+
           return {
             id: user.id,
             email: user.email,
-            name: user.name,
-            merchant: user.merchant
-          } as any
+            name: user.name || user.email,
+            merchantId: user.merchant_id || undefined,
+            merchantName: user.merchant?.name || undefined,
+            role: user.role || 'merchant'
+          }
+        } catch (error) {
+          console.error('Auth error:', error)
+          return null
         }
-
-        return null
       }
     })
   ],
@@ -59,18 +104,68 @@ const handler = NextAuth({
   },
   callbacks: {
     async jwt({ token, user, account }) {
+      // On initial sign in, add user data to token
       if (user) {
-        token.merchant = (user as any).merchant
-        // For Azure AD users, extract info from profile
-        if (account?.provider === 'azure-ad') {
-          token.merchant = 'Enterprise' // Default for SSO users
+        token.userId = user.id
+        token.merchantId = user.merchantId
+        token.merchantName = user.merchantName
+        token.role = user.role
+
+        // For Azure AD users, look up or create user in database
+        if (account?.provider === 'azure-ad' && user.email) {
+          try {
+            let dbUser = await prisma.users.findFirst({
+              where: {
+                OR: [
+                  { email: user.email },
+                  { sso_provider: 'azure_ad', sso_id: account.providerAccountId }
+                ]
+              },
+              include: { merchant: true }
+            })
+
+            if (!dbUser) {
+              // Create new SSO user - they'll need to be assigned to a merchant by admin
+              dbUser = await prisma.users.create({
+                data: {
+                  email: user.email,
+                  name: user.name || user.email,
+                  sso_provider: 'azure_ad',
+                  sso_id: account.providerAccountId,
+                  role: 'merchant',
+                  is_active: true
+                },
+                include: { merchant: true }
+              })
+            } else if (!dbUser.sso_id) {
+              // Link existing user to SSO
+              await prisma.users.update({
+                where: { id: dbUser.id },
+                data: {
+                  sso_provider: 'azure_ad',
+                  sso_id: account.providerAccountId,
+                  last_login: new Date()
+                }
+              })
+            }
+
+            token.userId = dbUser.id
+            token.merchantId = dbUser.merchant_id || undefined
+            token.merchantName = dbUser.merchant?.name || undefined
+            token.role = dbUser.role || 'merchant'
+          } catch (error) {
+            console.error('SSO user lookup error:', error)
+          }
         }
       }
       return token
     },
     async session({ session, token }) {
       if (session.user) {
-        (session.user as any).merchant = token.merchant
+        session.user.id = token.userId
+        session.user.merchantId = token.merchantId
+        session.user.merchantName = token.merchantName
+        session.user.role = token.role
       }
       return session
     }

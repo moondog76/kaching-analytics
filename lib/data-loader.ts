@@ -48,92 +48,115 @@ export class DataLoader {
   }
 
   /**
-   * Get metrics for a specific merchant
+   * Get metrics for a specific merchant - optimized
    */
   static async getMerchantMetrics(merchantId: string): Promise<MerchantMetrics> {
+    const today = new Date()
+    const startDate = subDays(today, 30)
+
+    // Single query: get merchant with recent daily metrics
     const merchant = await prisma.merchants.findUnique({
-      where: { id: merchantId }
+      where: { id: merchantId },
+      include: {
+        daily_metrics: {
+          where: {
+            date: { gte: startDate, lte: today }
+          },
+          orderBy: { date: 'desc' },
+          take: 30
+        }
+      }
     })
 
     if (!merchant) {
       throw new Error('Merchant not found')
     }
 
-    // Get today's metrics or calculate from transactions
-    const today = new Date()
-    const dailyMetric = await prisma.daily_metrics.findFirst({
-      where: {
-        merchant_id: merchantId,
-        date: today
-      }
-    })
+    const metrics = merchant.daily_metrics
 
-    // If no daily metrics, calculate from transactions
-    if (!dailyMetric) {
-      const transactions = await prisma.transactions.findMany({
-        where: {
-          merchant_id: merchantId,
-          transaction_date: {
-            gte: subDays(today, 30)
-          }
-        }
-      })
-
-      const totalRevenue = transactions.reduce((sum, t) => sum + Number(t.amount), 0)
-      const totalCashback = transactions.reduce((sum, t) => sum + Number(t.cashback_amount || 0), 0)
-      const uniqueCustomers = new Set(transactions.map(t => t.customer_id)).size
+    // If we have daily metrics, aggregate them
+    if (metrics.length > 0) {
+      const totalTransactions = metrics.reduce((sum, m) => sum + (m.transactions_count || 0), 0)
+      const totalRevenue = metrics.reduce((sum, m) => sum + Number(m.revenue || 0), 0)
+      const totalCustomers = metrics.reduce((sum, m) => sum + (m.unique_customers || 0), 0)
+      const totalCashback = metrics.reduce((sum, m) => sum + Number(m.cashback_paid || 0), 0)
 
       return {
         merchant_id: merchantId,
         merchant_name: merchant.name,
-        transactions: transactions.length,
-        revenue: Math.round(totalRevenue * 100), // Convert to cents
-        customers: uniqueCustomers,
+        transactions: totalTransactions,
+        revenue: Math.round(totalRevenue * 100),
+        customers: totalCustomers,
         cashback_paid: Math.round(totalCashback * 100),
         cashback_percent: Number(merchant.cashback_percent || 0),
         campaign_active: true,
-        avg_transaction: transactions.length > 0 ? totalRevenue / transactions.length : 0,
+        avg_transaction: totalTransactions > 0 ? totalRevenue / totalTransactions : 0,
         period: format(today, 'yyyy-MM-dd')
       }
     }
 
-    // Use daily metrics
+    // Fallback: no daily metrics, return zeros
     return {
       merchant_id: merchantId,
       merchant_name: merchant.name,
-      transactions: dailyMetric.transactions_count || 0,
-      revenue: Math.round(Number(dailyMetric.revenue) * 100),
-      customers: dailyMetric.unique_customers || 0,
-      cashback_paid: Math.round(Number(dailyMetric.cashback_paid) * 100),
+      transactions: 0,
+      revenue: 0,
+      customers: 0,
+      cashback_paid: 0,
       cashback_percent: Number(merchant.cashback_percent || 0),
       campaign_active: true,
-      avg_transaction: dailyMetric.transactions_count ? Number(dailyMetric.revenue) / dailyMetric.transactions_count : 0,
-      period: format(dailyMetric.date, 'yyyy-MM-dd')
+      avg_transaction: 0,
+      period: format(today, 'yyyy-MM-dd')
     }
   }
 
   /**
-   * Get competitor data
+   * Get competitor data - optimized with single query
    */
   static async getCompetitors(excludeMerchantId: string): Promise<CompetitorData[]> {
-    const merchants = await prisma.merchants.findMany({
+    // Get all merchants with their latest daily metrics in a single query
+    const endDate = new Date()
+    const startDate = subDays(endDate, 30)
+
+    // Fetch all merchants and aggregate their metrics in one go
+    const merchantsWithMetrics = await prisma.merchants.findMany({
       where: {
-        id: {
-          not: excludeMerchantId
+        id: { not: excludeMerchantId }
+      },
+      include: {
+        daily_metrics: {
+          where: {
+            date: { gte: startDate, lte: endDate }
+          },
+          orderBy: { date: 'desc' }
         }
-      }
+      },
+      take: 10 // Limit to top competitors for performance
     })
 
-    const competitorData: CompetitorData[] = []
+    const competitorData: CompetitorData[] = merchantsWithMetrics.map(merchant => {
+      // Aggregate metrics from daily_metrics
+      const metrics = merchant.daily_metrics
+      const totalTransactions = metrics.reduce((sum, m) => sum + (m.transactions_count || 0), 0)
+      const totalRevenue = metrics.reduce((sum, m) => sum + Number(m.revenue || 0), 0)
+      const totalCustomers = metrics.reduce((sum, m) => sum + (m.unique_customers || 0), 0)
+      const totalCashback = metrics.reduce((sum, m) => sum + Number(m.cashback_paid || 0), 0)
 
-    for (const merchant of merchants) {
-      const metrics = await this.getMerchantMetrics(merchant.id)
-      competitorData.push({
-        ...metrics,
-        rank: 0, // Will be calculated after sorting
+      return {
+        merchant_id: merchant.id,
+        merchant_name: merchant.name,
+        transactions: totalTransactions,
+        revenue: Math.round(totalRevenue * 100),
+        customers: totalCustomers,
+        cashback_paid: Math.round(totalCashback * 100),
+        cashback_percent: Number(merchant.cashback_percent || 0),
+        campaign_active: true,
+        avg_transaction: totalTransactions > 0 ? totalRevenue / totalTransactions : 0,
+        period: format(endDate, 'yyyy-MM-dd'),
+        rank: 0,
         isYou: false
-      })
-    }
+      }
+    })
 
     // Sort by revenue and assign ranks
     competitorData.sort((a, b) => b.revenue - a.revenue)

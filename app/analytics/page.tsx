@@ -6,6 +6,9 @@ import { MerchantMetrics, CompetitorData } from '@/lib/types'
 import ChartBuilder from '@/components/ChartBuilder'
 import ForecastChart from '@/components/ForecastChart'
 import CompetitorComparison from '@/components/CompetitorComparison'
+import { ExecutiveBriefing } from '@/components/ai/ExecutiveBriefing'
+import { AnomalyAlerts } from '@/components/ai/AnomalyAlerts'
+import { RecommendationCards } from '@/components/ai/RecommendationCards'
 import Link from 'next/link'
 
 export default function AnalyticsPage() {
@@ -16,7 +19,7 @@ export default function AnalyticsPage() {
     historical: MerchantMetrics[]
   } | null>(null)
   
-  const [activeTab, setActiveTab] = useState<'trends' | 'forecast' | 'competition'>('trends')
+  const [activeTab, setActiveTab] = useState<'trends' | 'forecast' | 'competition' | 'ai'>('trends')
   
   useEffect(() => {
     async function loadData() {
@@ -154,6 +157,20 @@ export default function AnalyticsPage() {
                 <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#FF6B35]" />
               )}
             </button>
+
+            <button
+              onClick={() => setActiveTab('ai')}
+              className={`px-6 py-3 font-semibold transition-all relative ${
+                activeTab === 'ai'
+                  ? 'text-[#FF6B35]'
+                  : 'text-[#8B92B8] hover:text-white'
+              }`}
+            >
+              🤖 AI Insights
+              {activeTab === 'ai' && (
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#FF6B35]" />
+              )}
+            </button>
           </div>
           
           {/* Tab Content */}
@@ -175,6 +192,16 @@ export default function AnalyticsPage() {
                 yourData={data.carrefour}
                 competitors={data.competitors}
               />
+            )}
+
+            {activeTab === 'ai' && (
+              <div className="space-y-6">
+                <ExecutiveBriefing merchantId={data.carrefour.merchant_id} />
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <AnomalyAlerts merchantId={data.carrefour.merchant_id} />
+                  <RecommendationCards merchantId={data.carrefour.merchant_id} />
+                </div>
+              </div>
             )}
           </div>
           

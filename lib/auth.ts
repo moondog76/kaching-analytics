@@ -1,6 +1,7 @@
 import { getServerSession } from "next-auth"
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "./db"
+import { authOptions } from "./auth-options"
 
 // Session user type
 export interface SessionUser {
@@ -14,7 +15,7 @@ export interface SessionUser {
 
 // Get current session user (for API routes)
 export async function getCurrentUser(): Promise<SessionUser | null> {
-  const session = await getServerSession()
+  const session = await getServerSession(authOptions)
   if (!session?.user?.email) return null
 
   return {

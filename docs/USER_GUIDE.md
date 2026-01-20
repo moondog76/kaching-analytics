@@ -285,10 +285,230 @@ Track all user activity:
 |------|-----|-------------|
 | Dashboard | `/` | Main merchant dashboard |
 | Analytics | `/analytics` | Deep-dive analytics |
+| Settings | `/settings` | Merchant settings (API, webhooks, branding) |
 | Admin Panel | `/admin` | User & merchant management |
 | Data Import | `/admin/import` | CSV upload |
 | Audit Logs | `/admin/audit-logs` | Activity tracking |
 | Login | `/login` | Authentication |
+
+---
+
+## Enterprise Features
+
+### Settings Page (`/settings`)
+
+Access merchant-specific enterprise features:
+
+#### API Access
+
+Generate and manage your API key for programmatic access:
+
+1. **Generate API Key** - Creates a key in format `ka_live_xxx`
+2. **Rate Limit** - Default 1000 requests/hour (configurable by admin)
+3. **Copy/Reveal** - Show and copy your API key securely
+4. **Revoke** - Immediately invalidate the current key
+
+**API Endpoints:**
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/v1/metrics` | GET | Daily metrics (revenue, transactions, customers) |
+| `/api/v1/anomalies` | GET | Detected anomalies with severity levels |
+| `/api/v1/forecast` | GET | 7-day revenue/transaction forecast |
+
+**Authentication:** Include your API key in the `X-API-Key` header.
+
+**Example Request:**
+```bash
+curl -H "X-API-Key: ka_live_xxx" \
+  https://kaching-analytics-production.up.railway.app/api/v1/metrics
+```
+
+**Query Parameters:**
+- `days` - Number of days of data (default: 30)
+- `start_date` / `end_date` - Date range (YYYY-MM-DD format)
+
+---
+
+#### Webhooks
+
+Receive real-time notifications when events occur:
+
+1. **Webhook URL** - Your HTTPS endpoint to receive events
+2. **Event Types** - Select which events to subscribe to:
+   - `anomaly.detected` - When unusual patterns are found
+   - `daily_report.ready` - When daily summary is available
+   - `threshold.exceeded` - When revenue/transaction limits are hit
+   - `weekly_report.ready` - When weekly summary is available
+
+**Webhook Payload:**
+```json
+{
+  "event": "anomaly.detected",
+  "merchant_id": "uuid",
+  "timestamp": "2024-01-15T10:30:00Z",
+  "data": {
+    "metric": "revenue",
+    "expected": 15000,
+    "actual": 8500,
+    "deviation": -43.3,
+    "severity": "high"
+  }
+}
+```
+
+**Security:** Each webhook includes an `X-Webhook-Signature` header (HMAC-SHA256). Verify against your webhook secret (`whsec_xxx`) to ensure authenticity.
+
+---
+
+#### Branding (White-Labeling)
+
+Customize the appearance of your analytics dashboard:
+
+| Setting | Description |
+|---------|-------------|
+| **Logo URL** | Your company logo (displayed in header) |
+| **Primary Color** | Main accent color (hex, e.g., `#FF6B35`) |
+| **Secondary Color** | Secondary accent color |
+| **Custom Domain** | Your own domain (e.g., `analytics.yourcompany.com`) |
+
+Custom domain setup requires DNS configuration - contact support for assistance.
+
+---
+
+### Progressive Web App (PWA)
+
+Install KaChing Analytics as a mobile app:
+
+**iOS:**
+1. Open the app in Safari
+2. Tap the Share button
+3. Select "Add to Home Screen"
+
+**Android:**
+1. Open the app in Chrome
+2. Tap the menu (three dots)
+3. Select "Install App" or "Add to Home Screen"
+
+**Desktop (Chrome/Edge):**
+1. Look for the install icon in the address bar
+2. Click "Install"
+
+**PWA Features:**
+- Offline access to recent data
+- Push notifications (when enabled)
+- Native app-like experience
+- Faster load times with service worker caching
+
+---
+
+## API Reference
+
+### Public API (v1)
+
+All endpoints require API key authentication via `X-API-Key` header.
+
+#### GET /api/v1/metrics
+
+Returns daily metrics for your merchant.
+
+**Parameters:**
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `days` | number | 30 | Number of days |
+| `start_date` | string | - | Start date (YYYY-MM-DD) |
+| `end_date` | string | - | End date (YYYY-MM-DD) |
+
+**Response:**
+```json
+{
+  "merchant_id": "uuid",
+  "period": { "start": "2024-01-01", "end": "2024-01-30" },
+  "metrics": [
+    {
+      "date": "2024-01-15",
+      "transactions_count": 1250,
+      "revenue": 45000.00,
+      "unique_customers": 890,
+      "cashback_paid": 2250.00
+    }
+  ],
+  "totals": {
+    "transactions": 35000,
+    "revenue": 1250000.00,
+    "customers": 12500,
+    "cashback": 62500.00
+  }
+}
+```
+
+---
+
+#### GET /api/v1/anomalies
+
+Returns detected anomalies for your merchant.
+
+**Parameters:**
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `days` | number | 7 | Days to analyze |
+| `severity` | string | - | Filter by severity (low, medium, high, critical) |
+
+**Response:**
+```json
+{
+  "merchant_id": "uuid",
+  "anomalies": [
+    {
+      "date": "2024-01-15",
+      "metric": "revenue",
+      "type": "drop",
+      "severity": "high",
+      "expected": 45000,
+      "actual": 28000,
+      "deviation_percent": -37.8,
+      "description": "Revenue 37.8% below expected",
+      "recommendation": "Investigate potential causes"
+    }
+  ],
+  "summary": {
+    "total": 3,
+    "by_severity": { "high": 1, "medium": 2 }
+  }
+}
+```
+
+---
+
+#### GET /api/v1/forecast
+
+Returns 7-day forecast for your merchant.
+
+**Parameters:**
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `metric` | string | revenue | Metric to forecast (revenue, transactions) |
+
+**Response:**
+```json
+{
+  "merchant_id": "uuid",
+  "metric": "revenue",
+  "forecast": [
+    {
+      "date": "2024-01-16",
+      "predicted": 47500,
+      "lower_bound": 42000,
+      "upper_bound": 53000,
+      "confidence": 0.85
+    }
+  ],
+  "model_info": {
+    "algorithm": "time_series_decomposition",
+    "training_days": 30
+  }
+}
+```
 
 ---
 

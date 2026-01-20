@@ -14,10 +14,62 @@ model merchants {
   cashback_percent Decimal?       @db.Decimal(5, 2)
   settings         Json?
   created_at       DateTime?      @default(now())
+
+  // White-labeling / Branding
+  logo_url         String?        @db.VarChar(500)
+  primary_color    String?        @db.VarChar(7)   // Hex color e.g. #FF6B35
+  secondary_color  String?        @db.VarChar(7)
+  custom_domain    String?        @db.VarChar(255) // e.g. analytics.merchant.com
+
+  // API Access
+  api_key          String?        @unique @db.VarChar(64)
+  api_key_created  DateTime?
+  api_rate_limit   Int?           @default(1000)   // requests per hour
+
+  // Webhooks
+  webhook_url      String?        @db.VarChar(500)
+  webhook_secret   String?        @db.VarChar(64)
+  webhook_events   String[]       @default([])     // ["anomaly", "daily_report", "threshold_alert"]
+
   users            users[]
   transactions     transactions[]
   daily_metrics    daily_metrics[]
   audit_logs       audit_logs[]
+  api_logs         api_logs[]
+  webhook_logs     webhook_logs[]
+}
+
+model api_logs {
+  id          String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  merchant_id String    @db.Uuid
+  endpoint    String    @db.VarChar(255)
+  method      String    @db.VarChar(10)
+  status_code Int
+  ip_address  String?   @db.VarChar(45)
+  user_agent  String?
+  created_at  DateTime  @default(now())
+
+  merchant    merchants @relation(fields: [merchant_id], references: [id])
+
+  @@index([merchant_id])
+  @@index([created_at])
+}
+
+model webhook_logs {
+  id          String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  merchant_id String    @db.Uuid
+  event_type  String    @db.VarChar(50)
+  payload     Json
+  status_code Int?
+  response    String?
+  attempts    Int       @default(1)
+  success     Boolean   @default(false)
+  created_at  DateTime  @default(now())
+
+  merchant    merchants @relation(fields: [merchant_id], references: [id])
+
+  @@index([merchant_id])
+  @@index([created_at])
 }
 
 model users {

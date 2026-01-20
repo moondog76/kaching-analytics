@@ -106,6 +106,20 @@ function Dashboard() {
                 >
                   Analytics 📊
                 </a>
+                <a
+                  href="/settings"
+                  className="px-4 py-2 rounded-lg text-sm font-medium text-[#8B92B8] hover:text-white hover:bg-[#1C2342] transition-all"
+                >
+                  Settings
+                </a>
+                {(session?.user as any)?.role === 'super_admin' || (session?.user as any)?.role === 'admin' ? (
+                  <a
+                    href="/admin"
+                    className="px-4 py-2 rounded-lg text-sm font-medium text-[#8B92B8] hover:text-white hover:bg-[#1C2342] transition-all"
+                  >
+                    Admin
+                  </a>
+                ) : null}
               </nav>
             </div>
             

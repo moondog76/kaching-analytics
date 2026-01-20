@@ -22,7 +22,7 @@ interface ImportResult {
 }
 
 const TARGET_COLUMNS: Record<string, string[]> = {
-  transactions: ['merchant_id', 'merchant_name', 'transaction_date', 'amount', 'customer_id', 'cashback_amount', 'category'],
+  transactions: ['merchant_id', 'merchant_name', 'transaction_date', 'amount', 'amount_cents', 'customer_id', 'cashback_amount', 'category'],
   daily_metrics: ['merchant_id', 'merchant_name', 'date', 'transactions_count', 'revenue', 'unique_customers', 'cashback_paid'],
 }
 

@@ -44,7 +44,7 @@ export function detectCSVStructure(csvContent: string): {
   const mappings: Record<string, string> = {}
 
   // Check for transactions table
-  const transactionIndicators = ['amount', 'transaction_date', 'customer_id', 'cashback']
+  const transactionIndicators = ['amount', 'amount_cents', 'transaction_date', 'customer_id', 'user_id', 'cashback']
   const metricsIndicators = ['transactions_count', 'revenue', 'unique_customers', 'cashback_paid']
   const merchantIndicators = ['merchant_name', 'industry', 'cashback_percent']
 
@@ -76,10 +76,13 @@ export function detectCSVStructure(csvContent: string): {
     for (const col of columns) {
       const lower = col.toLowerCase()
       if (lower.includes('merchant') && lower.includes('id')) mappings[col] = 'merchant_id'
+      else if (lower === 'merchant_name' || lower === 'merchant') mappings[col] = 'merchant_name'
       else if (lower.includes('transaction') && lower.includes('date')) mappings[col] = 'transaction_date'
       else if (lower === 'date') mappings[col] = 'transaction_date'
       else if (lower === 'amount' || lower.includes('transaction_amount')) mappings[col] = 'amount'
+      else if (lower === 'amount_cents') mappings[col] = 'amount_cents'
       else if (lower.includes('customer') && lower.includes('id')) mappings[col] = 'customer_id'
+      else if (lower === 'user_id') mappings[col] = 'customer_id'
       else if (lower.includes('cashback') && lower.includes('amount')) mappings[col] = 'cashback_amount'
       else if (lower === 'category') mappings[col] = 'category'
     }
@@ -203,6 +206,7 @@ export async function importTransactions(
         )
         const dateKey = Object.keys(columnMappings).find(k => columnMappings[k] === 'transaction_date')
         const amountKey = Object.keys(columnMappings).find(k => columnMappings[k] === 'amount')
+        const amountCentsKey = Object.keys(columnMappings).find(k => columnMappings[k] === 'amount_cents')
         const customerKey = Object.keys(columnMappings).find(k => columnMappings[k] === 'customer_id')
         const cashbackKey = Object.keys(columnMappings).find(k => columnMappings[k] === 'cashback_amount')
         const categoryKey = Object.keys(columnMappings).find(k => columnMappings[k] === 'category')
@@ -216,9 +220,17 @@ export async function importTransactions(
         }
 
         const dateValue = dateKey ? record[dateKey] : null
-        const amountValue = amountKey ? record[amountKey] : null
 
-        if (!dateValue || !amountValue) {
+        // Handle amount in euros or cents
+        let amountValue: number | null = null
+        if (amountKey && record[amountKey]) {
+          amountValue = parseFloat(record[amountKey]) || 0
+        } else if (amountCentsKey && record[amountCentsKey]) {
+          // Convert cents to euros
+          amountValue = (parseFloat(record[amountCentsKey]) || 0) / 100
+        }
+
+        if (!dateValue || amountValue === null) {
           skippedRows++
           continue
         }
@@ -226,7 +238,7 @@ export async function importTransactions(
         transactionsToInsert.push({
           merchant_id: merchantId,
           transaction_date: new Date(dateValue),
-          amount: new Prisma.Decimal(parseFloat(amountValue) || 0),
+          amount: new Prisma.Decimal(amountValue),
           customer_id: customerKey ? record[customerKey] : null,
           cashback_amount: cashbackKey ? new Prisma.Decimal(parseFloat(record[cashbackKey]) || 0) : null,
           category: categoryKey ? record[categoryKey] : null,

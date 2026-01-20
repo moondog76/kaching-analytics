@@ -427,63 +427,58 @@ export async function aggregateTransactionsToMetrics(
     await prisma.daily_metrics.deleteMany({})
   }
 
-  // Get all merchants
-  const merchants = await prisma.merchants.findMany({ select: { id: true } })
+  // Use raw SQL for efficient aggregation - much faster than individual queries
+  const aggregated = await prisma.$queryRaw<Array<{
+    merchant_id: string
+    transaction_date: Date
+    transactions_count: bigint
+    revenue: number
+    unique_customers: bigint
+    cashback_paid: number | null
+  }>>`
+    SELECT
+      merchant_id,
+      transaction_date,
+      COUNT(*) as transactions_count,
+      COALESCE(SUM(amount), 0) as revenue,
+      COUNT(DISTINCT customer_id) as unique_customers,
+      COALESCE(SUM(cashback_amount), 0) as cashback_paid
+    FROM transactions
+    WHERE merchant_id IS NOT NULL
+    GROUP BY merchant_id, transaction_date
+    ORDER BY merchant_id, transaction_date
+  `
 
+  progress({ phase: 'aggregating', progress: 30, message: `Found ${aggregated.length} merchant/date combinations...` })
+
+  // Batch insert the aggregated data
+  const batchSize = 500
   let totalImported = 0
 
-  for (let i = 0; i < merchants.length; i++) {
-    const merchant = merchants[i]
+  for (let i = 0; i < aggregated.length; i += batchSize) {
+    const batch = aggregated.slice(i, i + batchSize)
 
-    // Aggregate transactions by date for this merchant
-    const aggregated = await prisma.transactions.groupBy({
-      by: ['transaction_date'],
-      where: { merchant_id: merchant.id },
-      _count: { id: true },
-      _sum: { amount: true, cashback_amount: true },
+    const metricsToInsert = batch.map(row => ({
+      merchant_id: row.merchant_id,
+      date: row.transaction_date,
+      transactions_count: Number(row.transactions_count),
+      revenue: new Prisma.Decimal(row.revenue || 0),
+      unique_customers: Number(row.unique_customers),
+      cashback_paid: new Prisma.Decimal(row.cashback_paid || 0),
+    }))
+
+    await prisma.daily_metrics.createMany({
+      data: metricsToInsert,
+      skipDuplicates: true,
     })
 
-    // Get unique customers per day
-    for (const day of aggregated) {
-      const uniqueCustomers = await prisma.transactions.groupBy({
-        by: ['customer_id'],
-        where: {
-          merchant_id: merchant.id,
-          transaction_date: day.transaction_date,
-          customer_id: { not: null }
-        },
-      })
+    totalImported += batch.length
 
-      await prisma.daily_metrics.upsert({
-        where: {
-          merchant_id_date: {
-            merchant_id: merchant.id,
-            date: day.transaction_date,
-          }
-        },
-        create: {
-          merchant_id: merchant.id,
-          date: day.transaction_date,
-          transactions_count: day._count.id,
-          revenue: day._sum.amount || new Prisma.Decimal(0),
-          unique_customers: uniqueCustomers.length,
-          cashback_paid: day._sum.cashback_amount || new Prisma.Decimal(0),
-        },
-        update: {
-          transactions_count: day._count.id,
-          revenue: day._sum.amount || new Prisma.Decimal(0),
-          unique_customers: uniqueCustomers.length,
-          cashback_paid: day._sum.cashback_amount || new Prisma.Decimal(0),
-        },
-      })
-      totalImported++
-    }
-
-    const progressPercent = Math.floor((i / merchants.length) * 100)
+    const progressPercent = 30 + Math.floor((i / aggregated.length) * 60)
     progress({
       phase: 'aggregating',
       progress: progressPercent,
-      message: `Processed ${i + 1} of ${merchants.length} merchants...`
+      message: `Inserted ${totalImported} of ${aggregated.length} daily metrics...`
     })
   }
 

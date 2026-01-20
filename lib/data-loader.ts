@@ -84,6 +84,7 @@ export class DataLoader {
       const uniqueCustomers = new Set(transactions.map(t => t.customer_id)).size
 
       return {
+        merchant_id: merchantId,
         merchant_name: merchant.name,
         transactions: transactions.length,
         revenue: Math.round(totalRevenue * 100), // Convert to cents
@@ -98,6 +99,7 @@ export class DataLoader {
 
     // Use daily metrics
     return {
+      merchant_id: merchantId,
       merchant_name: merchant.name,
       transactions: dailyMetric.transactions_count || 0,
       revenue: Math.round(Number(dailyMetric.revenue) * 100),
@@ -171,6 +173,7 @@ export class DataLoader {
     }
 
     return dailyMetrics.map(dm => ({
+      merchant_id: merchantId,
       merchant_name: merchant.name,
       transactions: dm.transactions_count || 0,
       revenue: Math.round(Number(dm.revenue) * 100),
@@ -192,6 +195,7 @@ export class DataLoader {
     historical: MerchantMetrics[]
   } {
     const carrefour: MerchantMetrics = {
+      merchant_id: 'demo-carrefour-id',
       merchant_name: 'Carrefour',
       transactions: 482,
       revenue: 272978,
@@ -204,13 +208,13 @@ export class DataLoader {
     }
 
     const competitors: CompetitorData[] = [
-      { merchant_name: 'Lidl', transactions: 845, revenue: 402350, customers: 723, cashback_paid: 12071, cashback_percent: 3.0, campaign_active: true, avg_transaction: 476.2, period: format(new Date(), 'yyyy-MM-dd'), rank: 1, isYou: false },
-      { merchant_name: 'Kaufland', transactions: 723, revenue: 389200, customers: 634, cashback_paid: 13622, cashback_percent: 3.5, campaign_active: true, avg_transaction: 538.4, period: format(new Date(), 'yyyy-MM-dd'), rank: 2, isYou: false },
-      { merchant_name: 'Auchan', transactions: 634, revenue: 325600, customers: 542, cashback_paid: 8768, cashback_percent: 2.7, campaign_active: true, avg_transaction: 513.6, period: format(new Date(), 'yyyy-MM-dd'), rank: 3, isYou: false },
-      { merchant_name: 'Mega Image', transactions: 567, revenue: 289400, customers: 489, cashback_paid: 9812, cashback_percent: 3.4, campaign_active: true, avg_transaction: 510.4, period: format(new Date(), 'yyyy-MM-dd'), rank: 4, isYou: false },
-      { merchant_name: 'Carrefour', transactions: 482, revenue: 272978, customers: 416, cashback_paid: 13649, cashback_percent: 5.0, campaign_active: true, avg_transaction: 566.1, period: format(new Date(), 'yyyy-MM-dd'), rank: 5, isYou: true },
-      { merchant_name: 'Profi', transactions: 423, revenue: 198700, customers: 367, cashback_paid: 5961, cashback_percent: 3.0, campaign_active: true, avg_transaction: 469.7, period: format(new Date(), 'yyyy-MM-dd'), rank: 6, isYou: false },
-      { merchant_name: 'Penny', transactions: 389, revenue: 176300, customers: 334, cashback_paid: 4408, cashback_percent: 2.5, campaign_active: true, avg_transaction: 453.3, period: format(new Date(), 'yyyy-MM-dd'), rank: 7, isYou: false },
+      { merchant_id: 'demo-lidl-id', merchant_name: 'Lidl', transactions: 845, revenue: 402350, customers: 723, cashback_paid: 12071, cashback_percent: 3.0, campaign_active: true, avg_transaction: 476.2, period: format(new Date(), 'yyyy-MM-dd'), rank: 1, isYou: false },
+      { merchant_id: 'demo-kaufland-id', merchant_name: 'Kaufland', transactions: 723, revenue: 389200, customers: 634, cashback_paid: 13622, cashback_percent: 3.5, campaign_active: true, avg_transaction: 538.4, period: format(new Date(), 'yyyy-MM-dd'), rank: 2, isYou: false },
+      { merchant_id: 'demo-auchan-id', merchant_name: 'Auchan', transactions: 634, revenue: 325600, customers: 542, cashback_paid: 8768, cashback_percent: 2.7, campaign_active: true, avg_transaction: 513.6, period: format(new Date(), 'yyyy-MM-dd'), rank: 3, isYou: false },
+      { merchant_id: 'demo-megaimage-id', merchant_name: 'Mega Image', transactions: 567, revenue: 289400, customers: 489, cashback_paid: 9812, cashback_percent: 3.4, campaign_active: true, avg_transaction: 510.4, period: format(new Date(), 'yyyy-MM-dd'), rank: 4, isYou: false },
+      { merchant_id: 'demo-carrefour-id', merchant_name: 'Carrefour', transactions: 482, revenue: 272978, customers: 416, cashback_paid: 13649, cashback_percent: 5.0, campaign_active: true, avg_transaction: 566.1, period: format(new Date(), 'yyyy-MM-dd'), rank: 5, isYou: true },
+      { merchant_id: 'demo-profi-id', merchant_name: 'Profi', transactions: 423, revenue: 198700, customers: 367, cashback_paid: 5961, cashback_percent: 3.0, campaign_active: true, avg_transaction: 469.7, period: format(new Date(), 'yyyy-MM-dd'), rank: 6, isYou: false },
+      { merchant_id: 'demo-penny-id', merchant_name: 'Penny', transactions: 389, revenue: 176300, customers: 334, cashback_paid: 4408, cashback_percent: 2.5, campaign_active: true, avg_transaction: 453.3, period: format(new Date(), 'yyyy-MM-dd'), rank: 7, isYou: false },
     ]
 
     const historical = this.generateHistoricalData(carrefour, 30)
@@ -236,6 +240,7 @@ export class DataLoader {
       const factor = variance * weekendFactor
       
       historical.push({
+        merchant_id: current.merchant_id,
         merchant_name: current.merchant_name,
         transactions: Math.round(current.transactions * factor),
         revenue: Math.round(current.revenue * factor),

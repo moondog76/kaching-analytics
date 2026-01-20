@@ -119,10 +119,10 @@ useEffect(() => {
           <InsightsPanel />
           
           {/* Anomaly Detection */}
-          <AnomalyAlerts merchantId="carrefour-ro" />
-          
+          <AnomalyAlerts merchantId={data.carrefour.merchant_id} />
+
           {/* AI Recommendations */}
-          <RecommendationCards merchantId="carrefour-ro" />
+          <RecommendationCards merchantId={data.carrefour.merchant_id} />
           
           {/* Campaign Overview */}
           <div 

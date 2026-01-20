@@ -38,6 +38,7 @@ export async function POST(request: NextRequest) {
       const factor = variance * weekendFactor
       
       historicalData.push({
+        merchant_id: currentData.merchant_id,
         merchant_name: currentData.merchant_name,
         transactions: Math.round(currentData.transactions * factor),
         revenue: Math.round(currentData.revenue * factor),

@@ -13,6 +13,7 @@ export interface Transaction {
 }
 
 export interface MerchantMetrics {
+  merchant_id: string
   merchant_name: string
   transactions: number
   revenue: number

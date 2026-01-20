@@ -6,6 +6,7 @@ import AIChat from '@/components/AIChat'
 import InsightsPanel from '@/components/InsightsPanel'
 import { AnomalyAlerts } from '@/components/ai/AnomalyAlerts'
 import { RecommendationCards } from '@/components/ai/RecommendationCards'
+import { ExecutiveBriefing } from '@/components/ai/ExecutiveBriefing'
 import DrillableMetrics from '@/components/DrillableMetrics'
 import { MerchantMetrics, CompetitorData } from '@/lib/types'
 
@@ -115,9 +116,12 @@ useEffect(() => {
           {/* Drillable Metrics */}
           <DrillableMetrics data={data.carrefour} />
           
+          {/* Executive Briefing */}
+          <ExecutiveBriefing merchantId={data.carrefour.merchant_id} />
+
           {/* AI Insights */}
           <InsightsPanel />
-          
+
           {/* Anomaly Detection */}
           <AnomalyAlerts merchantId={data.carrefour.merchant_id} />
 

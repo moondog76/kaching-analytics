@@ -18,9 +18,9 @@ export default function AnalyticsPage() {
     competitors: CompetitorData[]
     historical: MerchantMetrics[]
   } | null>(null)
-  
+
   const [activeTab, setActiveTab] = useState<'trends' | 'forecast' | 'competition' | 'ai'>('trends')
-  
+
   useEffect(() => {
     async function loadData() {
       try {
@@ -33,146 +33,139 @@ export default function AnalyticsPage() {
     }
     loadData()
   }, [session])
-  
+
   if (!data) {
     return (
-      <div className="min-h-screen bg-[#0A0E27] flex items-center justify-center">
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="flex gap-3">
-          <div className="w-4 h-4 bg-[#FF6B35] rounded-full animate-bounce" style={{ animationDelay: '0s' }} />
-          <div className="w-4 h-4 bg-[#FF6B35] rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
-          <div className="w-4 h-4 bg-[#FF6B35] rounded-full animate-bounce" style={{ animationDelay: '0.4s' }} />
+          <div className="w-4 h-4 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0s' }} />
+          <div className="w-4 h-4 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
+          <div className="w-4 h-4 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }} />
         </div>
       </div>
     )
   }
-  
+
   return (
-    <div className="min-h-screen bg-[#0A0E27] relative">
-      {/* Background effects */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/4 left-1/5 w-96 h-96 bg-[#FF6B35]/5 rounded-full blur-3xl" />
-        <div className="absolute bottom-1/4 right-1/5 w-96 h-96 bg-[#7B61FF]/5 rounded-full blur-3xl" />
-      </div>
-      
+    <div className="min-h-screen bg-slate-50 relative">
       <div className="relative z-10">
         {/* Header */}
-        <header className="border-b border-[#252B4A] backdrop-blur-lg bg-[#0A0E27]/80 sticky top-0 z-40">
+        <header className="border-b border-slate-200 bg-white sticky top-0 z-40">
           <div className="max-w-7xl mx-auto px-8 py-5 flex justify-between items-center">
             <div className="flex items-center gap-6">
               <Link href="/" className="flex items-center gap-4 hover:opacity-80 transition-opacity">
-                <div className="text-3xl font-bold text-[#0057A6]">
+                <div className="text-xl font-semibold text-slate-800">
                   {data?.carrefour?.merchant_name || "Analytics"}
                 </div>
-                <div className="text-sm text-[#5A5F7D]">Analytics</div>
+                <div className="text-sm text-slate-400">Analytics</div>
               </Link>
-              
+
               <nav className="flex gap-1">
                 <Link
                   href="/"
-                  className="px-4 py-2 rounded-lg text-sm font-medium text-[#8B92B8] hover:text-white hover:bg-[#1C2342] transition-all"
+                  className="px-4 py-2 rounded-lg text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-all"
                 >
                   Dashboard
                 </Link>
                 <Link
                   href="/analytics"
-                  className="px-4 py-2 rounded-lg text-sm font-medium bg-[#FF6B35] text-white"
+                  className="px-4 py-2 rounded-lg text-sm font-medium bg-blue-50 text-blue-600"
                 >
                   Analytics
                 </Link>
               </nav>
             </div>
-            
+
             <div className="flex items-center gap-3">
               {/* User info */}
-              <div className="flex items-center gap-3 px-4 py-2 bg-[#141932] border border-[#252B4A] rounded-lg">
-                <div className="w-2 h-2 rounded-full bg-[#00D9A3] animate-pulse" />
-                <span className="font-mono text-sm text-white">
+              <div className="flex items-center gap-3 px-4 py-2 bg-white border border-slate-200 rounded-lg shadow-card">
+                <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                <span className="text-sm font-medium text-slate-700">
                   {session?.user?.name || data.carrefour.merchant_name}
                 </span>
               </div>
-              
+
               {/* Logout button */}
               <button
                 onClick={() => signOut({ callbackUrl: '/login' })}
-                className="px-4 py-2 bg-[#1C2342] hover:bg-[#252B4A] border border-[#252B4A] rounded-lg text-sm text-white transition-colors flex items-center gap-2"
+                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded-lg text-sm font-medium text-slate-700 transition-colors"
               >
-                <span>🚪</span>
                 Logout
               </button>
             </div>
           </div>
         </header>
-        
+
         <main className="max-w-7xl mx-auto px-8 py-8 space-y-8">
           {/* Hero Section */}
           <div className="animate-fade-in-up">
-            <h1 className="text-4xl font-bold text-white mb-3">
-              📊 Advanced Analytics
+            <h1 className="text-2xl font-semibold text-slate-800 mb-2">
+              Advanced Analytics
             </h1>
-            <p className="text-[#8B92B8] text-lg">
+            <p className="text-slate-500 text-base">
               Interactive visualizations and forecasting powered by statistical analysis
             </p>
           </div>
-          
+
           {/* Tabs */}
-          <div className="flex gap-2 border-b border-[#252B4A]">
+          <div className="flex gap-2 border-b border-slate-200">
             <button
               onClick={() => setActiveTab('trends')}
-              className={`px-6 py-3 font-semibold transition-all relative ${
+              className={`px-6 py-3 font-medium transition-all relative ${
                 activeTab === 'trends'
-                  ? 'text-[#FF6B35]'
-                  : 'text-[#8B92B8] hover:text-white'
+                  ? 'text-blue-600'
+                  : 'text-slate-500 hover:text-slate-900'
               }`}
             >
-              📈 Trend Analysis
+              Trend Analysis
               {activeTab === 'trends' && (
-                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#FF6B35]" />
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500" />
               )}
             </button>
-            
+
             <button
               onClick={() => setActiveTab('forecast')}
-              className={`px-6 py-3 font-semibold transition-all relative ${
+              className={`px-6 py-3 font-medium transition-all relative ${
                 activeTab === 'forecast'
-                  ? 'text-[#FF6B35]'
-                  : 'text-[#8B92B8] hover:text-white'
+                  ? 'text-blue-600'
+                  : 'text-slate-500 hover:text-slate-900'
               }`}
             >
-              🔮 Forecasting
+              Forecasting
               {activeTab === 'forecast' && (
-                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#FF6B35]" />
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500" />
               )}
             </button>
-            
+
             <button
               onClick={() => setActiveTab('competition')}
-              className={`px-6 py-3 font-semibold transition-all relative ${
+              className={`px-6 py-3 font-medium transition-all relative ${
                 activeTab === 'competition'
-                  ? 'text-[#FF6B35]'
-                  : 'text-[#8B92B8] hover:text-white'
+                  ? 'text-blue-600'
+                  : 'text-slate-500 hover:text-slate-900'
               }`}
             >
-              ⚖️ Competition
+              Competition
               {activeTab === 'competition' && (
-                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#FF6B35]" />
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500" />
               )}
             </button>
 
             <button
               onClick={() => setActiveTab('ai')}
-              className={`px-6 py-3 font-semibold transition-all relative ${
+              className={`px-6 py-3 font-medium transition-all relative ${
                 activeTab === 'ai'
-                  ? 'text-[#FF6B35]'
-                  : 'text-[#8B92B8] hover:text-white'
+                  ? 'text-blue-600'
+                  : 'text-slate-500 hover:text-slate-900'
               }`}
             >
-              🤖 AI Insights
+              AI Insights
               {activeTab === 'ai' && (
-                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#FF6B35]" />
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500" />
               )}
             </button>
           </div>
-          
+
           {/* Tab Content */}
           <div className="animate-fade-in-up">
             {activeTab === 'trends' && (
@@ -182,11 +175,11 @@ export default function AnalyticsPage() {
                 historicalData={data.historical}
               />
             )}
-            
+
             {activeTab === 'forecast' && (
               <ForecastChart metric="transactions" />
             )}
-            
+
             {activeTab === 'competition' && (
               <CompetitorComparison
                 yourData={data.carrefour}
@@ -204,29 +197,41 @@ export default function AnalyticsPage() {
               </div>
             )}
           </div>
-          
+
           {/* Feature Highlights */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
-            <div className="bg-[#141932] border border-[#252B4A] rounded-xl p-6">
-              <div className="text-3xl mb-3">⚡</div>
-              <h3 className="text-white font-semibold mb-2">Real-Time Interaction</h3>
-              <p className="text-sm text-[#8B92B8]">
+            <div className="bg-white border border-slate-200 rounded-xl shadow-card p-6">
+              <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mb-3">
+                <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+              </div>
+              <h3 className="text-slate-800 font-semibold mb-2">Real-Time Interaction</h3>
+              <p className="text-sm text-slate-500">
                 Hover over any data point to see detailed breakdowns. Click metrics to switch views instantly.
               </p>
             </div>
-            
-            <div className="bg-[#141932] border border-[#252B4A] rounded-xl p-6">
-              <div className="text-3xl mb-3">🎯</div>
-              <h3 className="text-white font-semibold mb-2">Statistical Accuracy</h3>
-              <p className="text-sm text-[#8B92B8]">
+
+            <div className="bg-white border border-slate-200 rounded-xl shadow-card p-6">
+              <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center mb-3">
+                <svg className="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <h3 className="text-slate-800 font-semibold mb-2">Statistical Accuracy</h3>
+              <p className="text-sm text-slate-500">
                 All forecasts use time-series decomposition with 95% confidence intervals and MAPE accuracy metrics.
               </p>
             </div>
-            
-            <div className="bg-[#141932] border border-[#252B4A] rounded-xl p-6">
-              <div className="text-3xl mb-3">📱</div>
-              <h3 className="text-white font-semibold mb-2">Mobile-First Design</h3>
-              <p className="text-sm text-[#8B92B8]">
+
+            <div className="bg-white border border-slate-200 rounded-xl shadow-card p-6">
+              <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center mb-3">
+                <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                </svg>
+              </div>
+              <h3 className="text-slate-800 font-semibold mb-2">Mobile-First Design</h3>
+              <p className="text-sm text-slate-500">
                 Every chart is fully responsive and works beautifully on desktop, tablet, and mobile devices.
               </p>
             </div>

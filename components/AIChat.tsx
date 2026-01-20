@@ -111,28 +111,30 @@ export default function AIChat() {
   }
   
   return (
-    <div 
-      className={`fixed bottom-8 right-8 w-[450px] bg-[#141932] border border-[#252B4A] rounded-2xl shadow-2xl flex flex-col transition-all duration-300 z-50 ${
+    <div
+      className={`fixed bottom-8 right-8 w-[450px] bg-white border border-slate-200 rounded-2xl shadow-elevated flex flex-col transition-all duration-300 z-50 ${
         isMinimized ? 'h-[70px]' : 'h-[650px]'
       }`}
     >
       {/* Header */}
-      <div 
-        className="p-5 border-b border-[#252B4A] flex justify-between items-center cursor-pointer select-none"
+      <div
+        className="p-5 border-b border-slate-200 flex justify-between items-center cursor-pointer select-none"
         onClick={() => setIsMinimized(!isMinimized)}
       >
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-gradient-to-br from-[#FF6B35] to-[#7B61FF] rounded-full flex items-center justify-center">
-            <span className="text-white text-lg">🤖</span>
+          <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
+            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+            </svg>
           </div>
           <div>
-            <div className="font-semibold text-white">AI Analyst</div>
-            <div className="text-xs text-[#8B92B8]">
+            <div className="font-semibold text-slate-800">AI Analyst</div>
+            <div className="text-xs text-slate-500">
               {isLoading ? 'Analyzing...' : 'Ready to help'}
             </div>
           </div>
         </div>
-        <div className="text-2xl text-[#8B92B8] hover:text-white transition-colors">
+        <div className="text-2xl text-slate-400 hover:text-slate-600 transition-colors">
           {isMinimized ? '▲' : '▼'}
         </div>
       </div>
@@ -140,62 +142,62 @@ export default function AIChat() {
       {!isMinimized && (
         <>
           {/* Messages */}
-          <div className="flex-1 overflow-y-auto p-5 space-y-4">
+          <div className="flex-1 overflow-y-auto p-5 space-y-4 bg-slate-50">
             {messages.map((msg, idx) => (
               <div key={idx} className="animate-fade-in-up">
                 <div
                   className={`p-4 rounded-xl max-w-[85%] ${
                     msg.role === 'user'
-                      ? 'bg-[#FF6B35] text-white ml-auto'
-                      : 'bg-[#1C2342] text-white'
+                      ? 'bg-blue-500 text-white ml-auto'
+                      : 'bg-white border border-slate-200 text-slate-700'
                   }`}
                 >
                   <div className="whitespace-pre-wrap">{msg.content}</div>
-                  
+
                   {/* Suggested follow-ups */}
                   {msg.role === 'assistant' && msg.suggested_followups && (
-                    <div className="mt-3 pt-3 border-t border-white/10">
-                      <div className="text-xs text-white/60 mb-2">Suggested questions:</div>
+                    <div className="mt-3 pt-3 border-t border-slate-200">
+                      <div className="text-xs text-slate-500 mb-2">Suggested questions:</div>
                       <div className="flex flex-col gap-2">
                         {msg.suggested_followups.map((followup, i) => (
                           <button
                             key={i}
                             onClick={() => handleSend(followup)}
-                            className="text-left text-sm bg-white/5 hover:bg-white/10 rounded-lg px-3 py-2 transition-colors"
+                            className="text-left text-sm bg-slate-50 hover:bg-slate-100 border border-slate-200 text-blue-600 rounded-lg px-3 py-2 transition-colors"
                             disabled={isLoading}
                           >
-                            💡 {followup}
+                            {followup}
                           </button>
                         ))}
                       </div>
                     </div>
                   )}
                 </div>
-                <div className="text-xs text-[#5A5F7D] mt-1 px-1">
+                <div className="text-xs text-slate-400 mt-1 px-1">
                   {msg.timestamp.toLocaleTimeString()}
                 </div>
               </div>
             ))}
-            
+
             {isLoading && (
-              <div className="flex gap-2 p-4 bg-[#1C2342] rounded-xl max-w-[85%]">
+              <div className="flex gap-2 p-4 bg-white border border-slate-200 rounded-xl max-w-[85%]">
                 <div className="flex gap-1">
-                  <span className="w-2 h-2 bg-[#8B92B8] rounded-full animate-bounce" style={{ animationDelay: '0s' }} />
-                  <span className="w-2 h-2 bg-[#8B92B8] rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
-                  <span className="w-2 h-2 bg-[#8B92B8] rounded-full animate-bounce" style={{ animationDelay: '0.4s' }} />
+                  <span className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0s' }} />
+                  <span className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
+                  <span className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }} />
                 </div>
               </div>
             )}
-            
+
             <div ref={messagesEndRef} />
           </div>
           
           {/* Input */}
-          <div className="p-5 border-t border-[#252B4A]">
+          <div className="p-5 border-t border-slate-200 bg-white">
             <div className="flex gap-3">
               <input
                 type="text"
-                className="flex-1 bg-[#1C2342] border border-[#252B4A] rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-[#FF6B35] transition-colors placeholder-[#5A5F7D]"
+                className="flex-1 bg-white border border-slate-200 rounded-xl px-4 py-3 text-slate-800 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-colors placeholder-slate-400"
                 placeholder="Ask about your campaign..."
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
@@ -203,14 +205,14 @@ export default function AIChat() {
                 disabled={isLoading}
               />
               <button
-                className="bg-[#FF6B35] text-white px-6 py-3 rounded-xl font-semibold hover:bg-[#E85A2B] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                className="bg-blue-500 text-white px-6 py-3 rounded-xl font-semibold hover:bg-blue-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 onClick={() => handleSend()}
                 disabled={isLoading || !input.trim()}
               >
                 Send
               </button>
             </div>
-            <div className="text-xs text-[#5A5F7D] mt-2">
+            <div className="text-xs text-slate-400 mt-2">
               Powered by Claude AI • Press Enter to send
             </div>
           </div>

@@ -39,25 +39,29 @@ export default function ForecastChart({ metric, onClose }: ForecastChartProps) {
   
   if (loading) {
     return (
-      <div className="bg-[#141932] border border-[#252B4A] rounded-xl p-8 flex items-center justify-center min-h-[400px]">
+      <div className="bg-white border border-slate-200 rounded-xl p-8 flex items-center justify-center min-h-[400px] shadow-card">
         <div className="flex flex-col items-center gap-4">
           <div className="flex gap-2">
-            <div className="w-3 h-3 bg-[#FF6B35] rounded-full animate-bounce" style={{ animationDelay: '0s' }} />
-            <div className="w-3 h-3 bg-[#FF6B35] rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
-            <div className="w-3 h-3 bg-[#FF6B35] rounded-full animate-bounce" style={{ animationDelay: '0.4s' }} />
+            <div className="w-3 h-3 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0s' }} />
+            <div className="w-3 h-3 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
+            <div className="w-3 h-3 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }} />
           </div>
-          <div className="text-white">Generating forecast...</div>
+          <div className="text-slate-700">Generating forecast...</div>
         </div>
       </div>
     )
   }
-  
+
   if (!forecastData) {
     return (
-      <div className="bg-[#141932] border border-[#252B4A] rounded-xl p-8 text-center">
-        <div className="text-4xl mb-3">⚠️</div>
-        <div className="text-white font-semibold mb-2">Forecast Unavailable</div>
-        <div className="text-[#8B92B8] text-sm">Unable to generate forecast with current data</div>
+      <div className="bg-white border border-slate-200 rounded-xl p-8 text-center shadow-card">
+        <div className="w-12 h-12 mx-auto mb-3 bg-amber-100 rounded-full flex items-center justify-center">
+          <svg className="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+        </div>
+        <div className="text-slate-800 font-semibold mb-2">Forecast Unavailable</div>
+        <div className="text-slate-500 text-sm">Unable to generate forecast with current data</div>
       </div>
     )
   }
@@ -89,23 +93,23 @@ export default function ForecastChart({ metric, onClose }: ForecastChartProps) {
     if (active && payload && payload.length) {
       const data = payload[0].payload
       return (
-        <div className="bg-[#141932] border border-[#252B4A] rounded-lg p-4 shadow-xl">
-          <p className="text-white font-semibold mb-2">{label}</p>
+        <div className="bg-white border border-slate-200 rounded-lg p-4 shadow-elevated">
+          <p className="text-slate-800 font-semibold mb-2">{label}</p>
           {data.actual !== undefined && (
             <div className="flex items-center gap-2 mb-1">
-              <div className="w-3 h-3 rounded-full bg-[#FF6B35]" />
-              <span className="text-[#8B92B8] text-sm">Actual:</span>
-              <span className="text-white font-mono font-semibold">{formatValue(data.actual)}</span>
+              <div className="w-3 h-3 rounded-full bg-blue-500" />
+              <span className="text-slate-500 text-sm">Actual:</span>
+              <span className="text-slate-800 font-mono font-semibold">{formatValue(data.actual)}</span>
             </div>
           )}
           {data.forecast !== undefined && (
             <>
               <div className="flex items-center gap-2 mb-1">
-                <div className="w-3 h-3 rounded-full bg-[#7B61FF]" />
-                <span className="text-[#8B92B8] text-sm">Forecast:</span>
-                <span className="text-white font-mono font-semibold">{formatValue(data.forecast)}</span>
+                <div className="w-3 h-3 rounded-full bg-purple-500" />
+                <span className="text-slate-500 text-sm">Forecast:</span>
+                <span className="text-slate-800 font-mono font-semibold">{formatValue(data.forecast)}</span>
               </div>
-              <div className="text-xs text-[#8B92B8] mt-2 pt-2 border-t border-[#252B4A]">
+              <div className="text-xs text-slate-500 mt-2 pt-2 border-t border-slate-200">
                 95% Confidence: {formatValue(data.lower)} - {formatValue(data.upper)}
               </div>
             </>
@@ -124,25 +128,25 @@ export default function ForecastChart({ metric, onClose }: ForecastChartProps) {
       {/* Header */}
       <div className="flex justify-between items-start">
         <div>
-          <h3 className="text-2xl font-bold text-white mb-2">🔮 Forecast: {metric}</h3>
-          <p className="text-[#8B92B8]">
+          <h3 className="text-2xl font-semibold text-slate-800 mb-2">Forecast: {metric}</h3>
+          <p className="text-slate-500">
             Statistical prediction with 95% confidence intervals
           </p>
         </div>
-        
+
         {onClose && (
           <button
             onClick={onClose}
-            className="text-[#8B92B8] hover:text-white text-2xl transition-colors"
+            className="text-slate-400 hover:text-slate-600 text-2xl transition-colors"
           >
             ×
           </button>
         )}
       </div>
-      
+
       {/* Controls */}
-      <div className="bg-[#141932] border border-[#252B4A] rounded-xl p-4 flex items-center justify-between">
-        <div className="text-white font-medium">Forecast Horizon</div>
+      <div className="bg-white border border-slate-200 rounded-xl p-4 flex items-center justify-between shadow-card">
+        <div className="text-slate-700 font-medium">Forecast Horizon</div>
         <div className="flex gap-2">
           {[7, 14, 30].map(days => (
             <button
@@ -150,8 +154,8 @@ export default function ForecastChart({ metric, onClose }: ForecastChartProps) {
               onClick={() => setDaysAhead(days)}
               className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
                 daysAhead === days
-                  ? 'bg-[#FF6B35] text-white'
-                  : 'bg-[#0A0E27] text-[#8B92B8] hover:bg-[#1C2342]'
+                  ? 'bg-blue-500 text-white'
+                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
               }`}
             >
               {days} Days
@@ -159,23 +163,23 @@ export default function ForecastChart({ metric, onClose }: ForecastChartProps) {
           ))}
         </div>
       </div>
-      
+
       {/* Chart */}
-      <div className="bg-[#141932] border border-[#252B4A] rounded-xl p-6">
+      <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-card">
         <ResponsiveContainer width="100%" height={400}>
           <ComposedChart data={chartData}>
             <defs>
               <linearGradient id="confidenceGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#7B61FF" stopOpacity={0.3}/>
-                <stop offset="95%" stopColor="#7B61FF" stopOpacity={0.1}/>
+                <stop offset="5%" stopColor="#A78BFA" stopOpacity={0.3}/>
+                <stop offset="95%" stopColor="#A78BFA" stopOpacity={0.1}/>
               </linearGradient>
             </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="#252B4A" />
-            <XAxis dataKey="date" stroke="#8B92B8" />
-            <YAxis stroke="#8B92B8" />
+            <CartesianGrid strokeDasharray="0" stroke="#F1F5F9" vertical={false} />
+            <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748B' }} />
+            <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748B' }} />
             <Tooltip content={<CustomTooltip />} />
             <Legend />
-            
+
             {/* Confidence interval area */}
             <Area
               type="monotone"
@@ -189,98 +193,110 @@ export default function ForecastChart({ metric, onClose }: ForecastChartProps) {
               type="monotone"
               dataKey="lower"
               stroke="none"
-              fill="#141932"
+              fill="#FFFFFF"
               fillOpacity={1}
             />
-            
+
             {/* Actual values */}
             <Line
               type="monotone"
               dataKey="actual"
-              stroke="#FF6B35"
+              stroke="#3B82F6"
               strokeWidth={3}
-              dot={{ fill: '#FF6B35', r: 4 }}
+              dot={{ fill: '#3B82F6', r: 4 }}
               name="Historical"
             />
-            
+
             {/* Forecast */}
             <Line
               type="monotone"
               dataKey="forecast"
-              stroke="#7B61FF"
+              stroke="#A78BFA"
               strokeWidth={3}
               strokeDasharray="5 5"
-              dot={{ fill: '#7B61FF', r: 4 }}
+              dot={{ fill: '#A78BFA', r: 4 }}
               name="Forecast"
             />
           </ComposedChart>
         </ResponsiveContainer>
-        
+
         {/* Stats */}
-        <div className="mt-6 pt-6 border-t border-[#252B4A] grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="bg-[#0A0E27] rounded-lg p-4">
-            <div className="text-xs text-[#8B92B8] mb-1">Avg Forecast</div>
-            <div className="text-lg font-bold font-mono text-white">{formatValue(avgForecast)}</div>
+        <div className="mt-6 pt-6 border-t border-slate-200 grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="bg-slate-50 rounded-lg p-4">
+            <div className="text-xs text-slate-500 mb-1">Avg Forecast</div>
+            <div className="text-lg font-bold font-mono text-slate-800">{formatValue(avgForecast)}</div>
           </div>
-          
-          <div className="bg-[#0A0E27] rounded-lg p-4">
-            <div className="text-xs text-[#8B92B8] mb-1">Trend</div>
-            <div className={`text-lg font-bold ${trend === 'up' ? 'text-[#00D9A3]' : 'text-[#FF4757]'}`}>
+
+          <div className="bg-slate-50 rounded-lg p-4">
+            <div className="text-xs text-slate-500 mb-1">Trend</div>
+            <div className={`text-lg font-bold ${trend === 'up' ? 'text-emerald-600' : 'text-red-600'}`}>
               {trend === 'up' ? '↑ Increasing' : '↓ Decreasing'}
             </div>
           </div>
-          
-          <div className="bg-[#0A0E27] rounded-lg p-4">
-            <div className="text-xs text-[#8B92B8] mb-1">Accuracy (MAPE)</div>
-            <div className="text-lg font-bold font-mono text-white">
+
+          <div className="bg-slate-50 rounded-lg p-4">
+            <div className="text-xs text-slate-500 mb-1">Accuracy (MAPE)</div>
+            <div className="text-lg font-bold font-mono text-slate-800">
               {forecastData.accuracy_metrics.mape.toFixed(1)}%
             </div>
           </div>
-          
-          <div className="bg-[#0A0E27] rounded-lg p-4">
-            <div className="text-xs text-[#8B92B8] mb-1">Methodology</div>
-            <div className="text-xs text-white">Time Series Decomposition</div>
+
+          <div className="bg-slate-50 rounded-lg p-4">
+            <div className="text-xs text-slate-500 mb-1">Methodology</div>
+            <div className="text-xs text-slate-700">Time Series Decomposition</div>
           </div>
         </div>
       </div>
       
       {/* Insights */}
-      <div className="bg-[#141932] border border-[#252B4A] rounded-xl p-6">
-        <h4 className="text-white font-semibold mb-4">📊 Forecast Insights</h4>
+      <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-card">
+        <h4 className="text-slate-800 font-semibold mb-4">Forecast Insights</h4>
         <div className="space-y-3">
-          <div className="flex items-start gap-3 p-3 bg-[#0A0E27] rounded-lg">
-            <span className="text-2xl">{trend === 'up' ? '📈' : '📉'}</span>
+          <div className="flex items-start gap-3 p-3 bg-slate-50 rounded-lg">
+            <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${trend === 'up' ? 'bg-emerald-100' : 'bg-red-100'}`}>
+              <svg className={`w-5 h-5 ${trend === 'up' ? 'text-emerald-600' : 'text-red-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={trend === 'up' ? 'M13 7h8m0 0v8m0-8l-8 8-4-4-6 6' : 'M13 17h8m0 0V9m0 8l-8-8-4 4-6-6'} />
+              </svg>
+            </div>
             <div className="flex-1">
-              <div className="text-white font-medium mb-1">
+              <div className="text-slate-800 font-medium mb-1">
                 Expected {trend === 'up' ? 'Growth' : 'Decline'}
               </div>
-              <div className="text-sm text-[#8B92B8]">
+              <div className="text-sm text-slate-500">
                 Based on historical patterns, your {metric} is trending {trend === 'up' ? 'upward' : 'downward'} over the next {daysAhead} days.
               </div>
             </div>
           </div>
-          
-          <div className="flex items-start gap-3 p-3 bg-[#0A0E27] rounded-lg">
-            <span className="text-2xl">🎯</span>
+
+          <div className="flex items-start gap-3 p-3 bg-slate-50 rounded-lg">
+            <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
+              <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
             <div className="flex-1">
-              <div className="text-white font-medium mb-1">
+              <div className="text-slate-800 font-medium mb-1">
                 Confidence Level: High
               </div>
-              <div className="text-sm text-[#8B92B8]">
-                MAPE of {forecastData.accuracy_metrics.mape.toFixed(1)}% indicates reliable predictions. 
+              <div className="text-sm text-slate-500">
+                MAPE of {forecastData.accuracy_metrics.mape.toFixed(1)}% indicates reliable predictions.
                 Historical accuracy suggests these forecasts are trustworthy.
               </div>
             </div>
           </div>
-          
-          <div className="flex items-start gap-3 p-3 bg-[#0A0E27] rounded-lg">
-            <span className="text-2xl">⚡</span>
+
+          <div className="flex items-start gap-3 p-3 bg-slate-50 rounded-lg">
+            <div className="w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center">
+              <svg className="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+            </div>
             <div className="flex-1">
-              <div className="text-white font-medium mb-1">
+              <div className="text-slate-800 font-medium mb-1">
                 Seasonality Detected
               </div>
-              <div className="text-sm text-[#8B92B8]">
-                The forecast accounts for weekly patterns including weekend effects. 
+              <div className="text-sm text-slate-500">
+                The forecast accounts for weekly patterns including weekend effects.
                 Expect natural fluctuations within the confidence interval.
               </div>
             </div>

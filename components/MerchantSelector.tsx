@@ -80,16 +80,16 @@ export default function MerchantSelector({ onMerchantChange }: MerchantSelectorP
   // Don't show selector if user only has one merchant
   if (!isLoading && merchants.length <= 1) {
     return currentMerchant ? (
-      <div className="flex items-center gap-2 px-3 py-2 text-sm text-[#8B92B8]">
+      <div className="flex items-center gap-2 px-3 py-2 text-sm text-slate-500">
         <Building2 className="w-4 h-4" />
-        <span className="font-medium text-white">{currentMerchant.name}</span>
+        <span className="font-medium text-slate-800">{currentMerchant.name}</span>
       </div>
     ) : null
   }
 
   if (isLoading) {
     return (
-      <div className="px-3 py-2 text-sm text-[#5A5F7D]">
+      <div className="px-3 py-2 text-sm text-slate-400">
         Loading...
       </div>
     )
@@ -99,19 +99,19 @@ export default function MerchantSelector({ onMerchantChange }: MerchantSelectorP
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#1C2342] hover:bg-[#252B4A] transition-colors border border-[#252B4A]"
+        className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white hover:bg-slate-50 transition-colors border border-slate-200"
       >
-        <Building2 className="w-4 h-4 text-[#FF6B35]" />
-        <span className="font-medium text-white max-w-[150px] truncate">
+        <Building2 className="w-4 h-4 text-blue-500" />
+        <span className="font-medium text-slate-800 max-w-[150px] truncate">
           {currentMerchant?.name || 'Select Merchant'}
         </span>
-        <ChevronDown className={`w-4 h-4 text-[#5A5F7D] transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+        <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
       </button>
 
       {isOpen && (
-        <div className="absolute top-full left-0 mt-2 w-64 bg-[#1C2342] border border-[#252B4A] rounded-lg shadow-xl z-50 overflow-hidden">
-          <div className="p-2 border-b border-[#252B4A]">
-            <p className="text-xs text-[#5A5F7D] uppercase tracking-wider px-2">
+        <div className="absolute top-full left-0 mt-2 w-64 bg-white border border-slate-200 rounded-lg shadow-elevated z-50 overflow-hidden">
+          <div className="p-2 border-b border-slate-200">
+            <p className="text-xs text-slate-400 uppercase tracking-wider px-2">
               {userRole === 'super_admin' || userRole === 'admin' ? 'All Merchants' : 'Your Merchant'}
             </p>
           </div>
@@ -120,18 +120,18 @@ export default function MerchantSelector({ onMerchantChange }: MerchantSelectorP
               <button
                 key={merchant.id}
                 onClick={() => handleSelect(merchant)}
-                className={`w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-[#252B4A] transition-colors ${
-                  merchant.id === currentMerchant?.id ? 'bg-[#252B4A]/50' : ''
+                className={`w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-slate-50 transition-colors ${
+                  merchant.id === currentMerchant?.id ? 'bg-blue-50' : ''
                 }`}
               >
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium text-white truncate">{merchant.name}</p>
+                  <p className="font-medium text-slate-800 truncate">{merchant.name}</p>
                   {merchant.industry && (
-                    <p className="text-xs text-[#5A5F7D] truncate">{merchant.industry}</p>
+                    <p className="text-xs text-slate-400 truncate">{merchant.industry}</p>
                   )}
                 </div>
                 {merchant.id === currentMerchant?.id && (
-                  <Check className="w-4 h-4 text-[#00C48C] flex-shrink-0" />
+                  <Check className="w-4 h-4 text-emerald-500 flex-shrink-0" />
                 )}
               </button>
             ))}

@@ -38,32 +38,26 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0A0E27] flex items-center justify-center px-4">
-      {/* Background effects */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/4 left-1/5 w-96 h-96 bg-[#FF6B35]/5 rounded-full blur-3xl" />
-        <div className="absolute bottom-1/4 right-1/5 w-96 h-96 bg-[#7B61FF]/5 rounded-full blur-3xl" />
-      </div>
-
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4">
       <div className="relative z-10 w-full max-w-md">
         {/* Logo/Branding */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center gap-3 mb-4">
-            <div className="text-4xl font-bold text-[#0057A6]">
-              Carrefour
+            <div className="text-2xl font-semibold text-slate-800">
+              KaChing Analytics
             </div>
           </div>
-          <p className="text-[#8B92B8] text-lg">Analytics Platform</p>
+          <p className="text-slate-500 text-base">Analytics Platform</p>
         </div>
 
         {/* Login Card */}
-        <div className="bg-[#141932] border border-[#252B4A] rounded-2xl p-8 shadow-2xl">
-          <h2 className="text-2xl font-bold text-white mb-6">Sign In</h2>
+        <div className="bg-white border border-slate-200 rounded-2xl p-8 shadow-elevated">
+          <h2 className="text-xl font-semibold text-slate-800 mb-6">Sign In</h2>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Email */}
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-white mb-2">
+              <label htmlFor="email" className="block text-sm font-medium text-slate-700 mb-2">
                 Email
               </label>
               <input
@@ -72,14 +66,14 @@ export default function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="w-full px-4 py-3 bg-[#0A0E27] border border-[#252B4A] rounded-lg text-white placeholder-[#5A5F7D] focus:outline-none focus:border-[#FF6B35] transition-colors"
+                className="w-full px-4 py-3 bg-white border border-slate-200 rounded-lg text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-colors"
                 placeholder="your@email.com"
               />
             </div>
 
             {/* Password */}
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-white mb-2">
+              <label htmlFor="password" className="block text-sm font-medium text-slate-700 mb-2">
                 Password
               </label>
               <input
@@ -88,15 +82,15 @@ export default function LoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="w-full px-4 py-3 bg-[#0A0E27] border border-[#252B4A] rounded-lg text-white placeholder-[#5A5F7D] focus:outline-none focus:border-[#FF6B35] transition-colors"
+                className="w-full px-4 py-3 bg-white border border-slate-200 rounded-lg text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-colors"
                 placeholder="••••••••"
               />
             </div>
 
             {/* Error Message */}
             {error && (
-              <div className="p-3 bg-[#FF4757]/10 border border-[#FF4757] rounded-lg">
-                <p className="text-[#FF4757] text-sm">{error}</p>
+              <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+                <p className="text-red-600 text-sm">{error}</p>
               </div>
             )}
 
@@ -104,7 +98,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 bg-gradient-to-r from-[#FF6B35] to-[#7B61FF] text-white font-semibold rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full py-3 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? 'Signing in...' : 'Sign In'}
             </button>
@@ -113,7 +107,7 @@ export default function LoginPage() {
         </div>
 
         {/* Footer */}
-        <p className="text-center text-[#5A5F7D] text-sm mt-6">
+        <p className="text-center text-slate-400 text-sm mt-6">
           Powered by AI-native analytics
         </p>
       </div>

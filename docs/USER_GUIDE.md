@@ -1,8 +1,8 @@
-# KaChing Analytics Platform
+# Kaching Analytics Platform
 
 ## Overview
 
-KaChing Analytics is an AI-native retail analytics platform designed for Romanian merchants. It provides real-time insights, anomaly detection, AI-powered recommendations, and executive briefings to help merchants understand their cashback campaign performance.
+Kaching Analytics is an AI-native retail analytics platform designed for Romanian merchants. It provides real-time insights, anomaly detection, AI-powered recommendations, and executive briefings to help merchants understand their cashback campaign performance.
 
 **Production URL:** `https://kaching-analytics-production.up.railway.app`
 

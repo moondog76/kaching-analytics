@@ -9,6 +9,7 @@ import CompetitorComparison from '@/components/CompetitorComparison'
 import { ExecutiveBriefing } from '@/components/ai/ExecutiveBriefing'
 import { AnomalyAlerts } from '@/components/ai/AnomalyAlerts'
 import { RecommendationCards } from '@/components/ai/RecommendationCards'
+import AIChat from '@/components/AIChat'
 import Link from 'next/link'
 
 export default function AnalyticsPage() {
@@ -238,6 +239,9 @@ export default function AnalyticsPage() {
           </div>
         </main>
       </div>
+
+      {/* AI Chat Assistant */}
+      <AIChat />
     </div>
   )
 }

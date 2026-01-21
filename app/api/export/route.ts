@@ -102,7 +102,13 @@ export async function GET(request: NextRequest) {
 
     // Generate export based on format
     const timestamp = format(new Date(), 'yyyy-MM-dd')
-    const merchantName = data.merchantData.merchant_name.toLowerCase().replace(/\s+/g, '-')
+    // Sanitize filename to prevent header injection - only allow alphanumeric and hyphens
+    const merchantName = data.merchantData.merchant_name
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, '')  // Remove special chars
+      .replace(/\s+/g, '-')           // Replace spaces with hyphens
+      .replace(/-+/g, '-')            // Collapse multiple hyphens
+      .substring(0, 50)               // Limit length
 
     switch (formatType) {
       case 'csv': {

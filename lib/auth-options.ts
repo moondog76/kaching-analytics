@@ -63,17 +63,13 @@ export const authOptions: NextAuthOptions = {
             return null
           }
 
-          // Check password
-          let isValidPassword = false
-
-          if (user.password_hash) {
-            // Production: verify hashed password
-            isValidPassword = await bcrypt.compare(credentials.password, user.password_hash)
-          } else {
-            // Demo mode: allow demo123 for users without password_hash
-            isValidPassword = credentials.password === 'demo123'
+          // Check password - require password_hash for all users
+          if (!user.password_hash) {
+            console.warn(`Login attempt for user without password hash: ${user.email}`)
+            return null
           }
 
+          const isValidPassword = await bcrypt.compare(credentials.password, user.password_hash)
           if (!isValidPassword) {
             return null
           }
@@ -172,6 +168,8 @@ export const authOptions: NextAuthOptions = {
   },
   session: {
     strategy: 'jwt' as const,
+    maxAge: 24 * 60 * 60, // 24 hours
+    updateAge: 60 * 60,   // Refresh token every hour
   },
   secret: process.env.NEXTAUTH_SECRET,
 }

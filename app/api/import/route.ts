@@ -5,11 +5,31 @@ import {
   importDailyMetrics,
   aggregateTransactionsToMetrics,
 } from '@/lib/csv-importer'
+import { getCurrentUser } from '@/lib/auth'
 
 export const maxDuration = 300 // 5 minutes for large imports
 
+// Maximum file size: 50MB
+const MAX_FILE_SIZE = 50 * 1024 * 1024
+
 export async function POST(request: NextRequest) {
   try {
+    // Authentication check - require admin or super_admin role
+    const user = await getCurrentUser()
+    if (!user) {
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized' },
+        { status: 401 }
+      )
+    }
+
+    if (user.role !== 'super_admin' && user.role !== 'admin') {
+      return NextResponse.json(
+        { success: false, error: 'Forbidden: Admin access required' },
+        { status: 403 }
+      )
+    }
+
     const formData = await request.formData()
     const file = formData.get('file') as File | null
     const action = formData.get('action') as string
@@ -18,6 +38,22 @@ export async function POST(request: NextRequest) {
     const columnMappings = formData.get('columnMappings')
       ? JSON.parse(formData.get('columnMappings') as string)
       : null
+
+    // Validate file size
+    if (file && file.size > MAX_FILE_SIZE) {
+      return NextResponse.json(
+        { success: false, error: 'File too large. Maximum size is 50MB.' },
+        { status: 400 }
+      )
+    }
+
+    // Validate file type
+    if (file && !file.name.toLowerCase().endsWith('.csv')) {
+      return NextResponse.json(
+        { success: false, error: 'Invalid file type. Only CSV files are allowed.' },
+        { status: 400 }
+      )
+    }
 
     // Action: detect - analyze CSV structure
     if (action === 'detect' && file) {
@@ -70,7 +106,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Import error:', error)
     return NextResponse.json(
-      { success: false, error: String(error) },
+      { success: false, error: 'Import failed. Please check your file format and try again.' },
       { status: 500 }
     )
   }

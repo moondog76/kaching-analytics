@@ -1,6 +1,57 @@
 import { randomBytes, createHmac } from 'crypto'
 import { prisma } from './db'
 
+// Private/internal IP ranges to block for SSRF protection
+const PRIVATE_IP_PATTERNS = [
+  /^127\./,                           // Loopback
+  /^10\./,                            // Private Class A
+  /^172\.(1[6-9]|2[0-9]|3[01])\./,   // Private Class B
+  /^192\.168\./,                      // Private Class C
+  /^169\.254\./,                      // Link-local
+  /^0\./,                             // Current network
+  /^localhost$/i,                     // localhost hostname
+  /^::1$/,                            // IPv6 loopback
+  /^fc00:/i,                          // IPv6 private
+  /^fe80:/i,                          // IPv6 link-local
+]
+
+/**
+ * Validate webhook URL for SSRF protection
+ */
+export function validateWebhookUrl(url: string): { valid: boolean; error?: string } {
+  try {
+    const parsed = new URL(url)
+
+    // Must be HTTPS (no HTTP for webhooks)
+    if (parsed.protocol !== 'https:') {
+      return { valid: false, error: 'Webhook URL must use HTTPS' }
+    }
+
+    // Check for private/internal IP addresses
+    const hostname = parsed.hostname
+    for (const pattern of PRIVATE_IP_PATTERNS) {
+      if (pattern.test(hostname)) {
+        return { valid: false, error: 'Webhook URL cannot point to internal/private networks' }
+      }
+    }
+
+    // Block common cloud metadata endpoints
+    if (hostname === '169.254.169.254' || hostname.includes('metadata.google') || hostname.includes('metadata.aws')) {
+      return { valid: false, error: 'Webhook URL cannot point to cloud metadata services' }
+    }
+
+    // Validate port (only allow standard HTTPS port or high ports)
+    const port = parsed.port ? parseInt(parsed.port) : 443
+    if (port < 443 || (port > 443 && port < 1024)) {
+      return { valid: false, error: 'Webhook URL must use port 443 or a high port (>1024)' }
+    }
+
+    return { valid: true }
+  } catch {
+    return { valid: false, error: 'Invalid URL format' }
+  }
+}
+
 export type WebhookEventType =
   | 'anomaly.detected'
   | 'daily_report.ready'
@@ -38,7 +89,13 @@ export async function configureMerchantWebhook(
   merchantId: string,
   webhookUrl: string,
   events: WebhookEventType[]
-): Promise<{ secret: string }> {
+): Promise<{ secret: string; error?: string }> {
+  // Validate URL for SSRF protection
+  const validation = validateWebhookUrl(webhookUrl)
+  if (!validation.valid) {
+    return { secret: '', error: validation.error }
+  }
+
   const secret = generateWebhookSecret()
 
   await prisma.merchants.update({
@@ -108,32 +165,51 @@ export async function sendWebhook(
       data
     }
 
+    // Re-validate URL before sending (in case it was changed)
+    const urlValidation = validateWebhookUrl(merchant.webhook_url)
+    if (!urlValidation.valid) {
+      console.warn(`Webhook URL validation failed for merchant ${merchantId}: ${urlValidation.error}`)
+      return false
+    }
+
     const payloadString = JSON.stringify(payload)
     const signature = signWebhookPayload(payloadString, merchant.webhook_secret)
 
-    // Send the webhook
-    const response = await fetch(merchant.webhook_url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-KaChing-Signature': signature,
-        'X-KaChing-Event': event
-      },
-      body: payloadString
-    })
+    // Send the webhook with timeout
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 second timeout
 
-    // Log the webhook
-    await prisma.webhook_logs.create({
-      data: {
-        merchant_id: merchantId,
-        event_type: event,
-        payload: payload as any,
-        status_code: response.status,
-        success: response.ok
-      }
-    })
+    try {
+      const response = await fetch(merchant.webhook_url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-KaChing-Signature': signature,
+          'X-KaChing-Event': event,
+          'User-Agent': 'KaChing-Webhooks/1.0'
+        },
+        body: payloadString,
+        signal: controller.signal
+      })
 
-    return response.ok
+      clearTimeout(timeoutId)
+
+      // Log the webhook
+      await prisma.webhook_logs.create({
+        data: {
+          merchant_id: merchantId,
+          event_type: event,
+          payload: payload as any,
+          status_code: response.status,
+          success: response.ok
+        }
+      })
+
+      return response.ok
+    } catch (fetchError) {
+      clearTimeout(timeoutId)
+      throw fetchError
+    }
   } catch (error) {
     console.error('Error sending webhook:', error)
 

@@ -21,18 +21,21 @@ export function hashApiKey(apiKey: string): string {
 
 /**
  * Create and assign a new API key to a merchant
+ * Returns the plaintext key (shown once), stores the hash
  */
 export async function createMerchantApiKey(merchantId: string): Promise<string> {
   const apiKey = generateApiKey()
+  const hashedKey = hashApiKey(apiKey)
 
   await prisma.merchants.update({
     where: { id: merchantId },
     data: {
-      api_key: apiKey,
+      api_key: hashedKey,  // Store hash, not plaintext
       api_key_created: new Date()
     }
   })
 
+  // Return plaintext key - this is the only time it's available
   return apiKey
 }
 
@@ -57,6 +60,7 @@ export async function revokeMerchantApiKey(merchantId: string): Promise<boolean>
 
 /**
  * Validate an API key and return the merchant
+ * Compares hash of provided key against stored hash
  */
 export async function validateApiKey(apiKey: string): Promise<{
   valid: boolean
@@ -69,8 +73,11 @@ export async function validateApiKey(apiKey: string): Promise<{
   }
 
   try {
+    // Hash the provided key for comparison
+    const hashedKey = hashApiKey(apiKey)
+
     const merchant = await prisma.merchants.findFirst({
-      where: { api_key: apiKey },
+      where: { api_key: hashedKey },  // Compare hashes
       select: {
         id: true,
         name: true,
@@ -157,26 +164,24 @@ export function checkApiRateLimit(
 
 /**
  * Middleware for API key authentication
+ * API keys must be provided via Authorization header only (not query params for security)
  */
 export async function withApiKeyAuth(
   request: NextRequest,
   handler: (merchantId: string) => Promise<NextResponse>
 ): Promise<NextResponse> {
-  // Extract API key from header or query
+  // Extract API key from Authorization header only (query params are insecure)
   const authHeader = request.headers.get('authorization')
-  const apiKeyFromQuery = request.nextUrl.searchParams.get('api_key')
 
   let apiKey: string | null = null
 
   if (authHeader?.startsWith('Bearer ')) {
     apiKey = authHeader.substring(7)
-  } else if (apiKeyFromQuery) {
-    apiKey = apiKeyFromQuery
   }
 
   if (!apiKey) {
     return NextResponse.json(
-      { error: 'Missing API key', message: 'Provide API key via Authorization header or api_key query param' },
+      { error: 'Missing API key', message: 'Provide API key via Authorization: Bearer <api_key> header' },
       { status: 401 }
     )
   }

@@ -1,12 +1,31 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { DataLoader } from '@/lib/data-loader'
 import { getCurrentUser, logAuditEvent } from '@/lib/auth'
+import { startOfDay, endOfDay, subDays } from 'date-fns'
 
 export async function GET(request: NextRequest) {
   try {
     const user = await getCurrentUser()
     const { searchParams } = new URL(request.url)
     const requestedMerchantId = searchParams.get('merchantId')
+
+    // Parse date range parameters
+    const startDateParam = searchParams.get('startDate')
+    const endDateParam = searchParams.get('endDate')
+
+    let startDate: Date | undefined
+    let endDate: Date | undefined
+
+    if (startDateParam && endDateParam) {
+      startDate = startOfDay(new Date(startDateParam))
+      endDate = endOfDay(new Date(endDateParam))
+
+      // Validate dates
+      if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+        startDate = undefined
+        endDate = undefined
+      }
+    }
 
     if (!user) {
       // Return demo data if not logged in
@@ -33,8 +52,11 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Load from database using merchantId
-    const dbData = await DataLoader.loadMerchantDataById(merchantId)
+    // Load from database using merchantId with optional date range
+    const dbData = await DataLoader.loadMerchantDataById(merchantId, {
+      startDate,
+      endDate
+    })
 
     if (dbData) {
       // Log the access

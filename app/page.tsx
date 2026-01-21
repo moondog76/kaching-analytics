@@ -3,6 +3,7 @@
 import { Suspense, useEffect, useState } from 'react'
 import { signOut, useSession } from 'next-auth/react'
 import { useSearchParams } from 'next/navigation'
+import { format } from 'date-fns'
 import AIChat from '@/components/AIChat'
 import InsightsPanel from '@/components/InsightsPanel'
 import { AnomalyAlerts } from '@/components/ai/AnomalyAlerts'
@@ -10,6 +11,10 @@ import { RecommendationCards } from '@/components/ai/RecommendationCards'
 import { ExecutiveBriefing } from '@/components/ai/ExecutiveBriefing'
 import DrillableMetrics from '@/components/DrillableMetrics'
 import MerchantSelector from '@/components/MerchantSelector'
+import DateRangePicker, { DateRange, getDefaultDateRange } from '@/components/DateRangePicker'
+import ExportButton from '@/components/ExportButton'
+import DashboardCustomizer from '@/components/DashboardCustomizer'
+import { DashboardLayout, getSavedLayout, DEFAULT_LAYOUT } from '@/lib/dashboard-config'
 import { MerchantMetrics, CompetitorData } from '@/lib/types'
 
 // Wrap page in Suspense for useSearchParams
@@ -40,16 +45,27 @@ function Dashboard() {
     carrefour: MerchantMetrics
     competitors: CompetitorData[]
   } | null>(null)
+  const [dateRange, setDateRange] = useState<DateRange>(getDefaultDateRange)
+  const [showCustomizer, setShowCustomizer] = useState(false)
+  const [layout, setLayout] = useState<DashboardLayout>(DEFAULT_LAYOUT)
 
   // Get merchantId from URL params
   const merchantId = searchParams.get('merchantId')
 
+  // Load saved layout on mount
+  useEffect(() => {
+    setLayout(getSavedLayout())
+  }, [])
+
   useEffect(() => {
     async function loadData() {
       try {
-        const url = merchantId
-          ? `/api/merchant-data?merchantId=${merchantId}`
-          : '/api/merchant-data'
+        const params = new URLSearchParams()
+        if (merchantId) params.set('merchantId', merchantId)
+        params.set('startDate', format(dateRange.startDate, 'yyyy-MM-dd'))
+        params.set('endDate', format(dateRange.endDate, 'yyyy-MM-dd'))
+
+        const url = `/api/merchant-data?${params.toString()}`
         const response = await fetch(url)
         const data = await response.json()
         setData(data)
@@ -58,7 +74,7 @@ function Dashboard() {
       }
     }
     loadData()
-  }, [session, merchantId])
+  }, [session, merchantId, dateRange])
 
   if (!data) {
     return (
@@ -84,7 +100,8 @@ function Dashboard() {
             <div className="flex items-center gap-6">
               <div className="flex items-center gap-4">
                 <MerchantSelector />
-                <div className="text-sm text-slate-400">Analytics</div>
+                <DateRangePicker value={dateRange} onChange={setDateRange} />
+                <ExportButton dateRange={dateRange} merchantId={merchantId || undefined} />
               </div>
 
               <nav className="flex gap-1">
@@ -118,6 +135,17 @@ function Dashboard() {
             </div>
 
             <div className="flex items-center gap-3">
+              {/* Customize button */}
+              <button
+                onClick={() => setShowCustomizer(true)}
+                className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+                title="Customize dashboard"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+                </svg>
+              </button>
+
               {/* User info */}
               <div className="flex items-center gap-3 px-4 py-2 bg-white border border-slate-200 rounded-lg shadow-card">
                 <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
@@ -148,20 +176,25 @@ function Dashboard() {
             </p>
           </div>
 
-          {/* Drillable Metrics */}
-          <DrillableMetrics data={data.carrefour} />
+          {/* Widgets - rendered based on layout order */}
+          {layout.widgetOrder.map(widgetId => {
+            if (!layout.enabledWidgets.includes(widgetId)) return null
 
-          {/* Executive Briefing */}
-          <ExecutiveBriefing merchantId={data.carrefour.merchant_id} />
-
-          {/* AI Insights */}
-          <InsightsPanel />
-
-          {/* Anomaly Detection */}
-          <AnomalyAlerts merchantId={data.carrefour.merchant_id} />
-
-          {/* AI Recommendations */}
-          <RecommendationCards merchantId={data.carrefour.merchant_id} />
+            switch (widgetId) {
+              case 'drillable-metrics':
+                return <DrillableMetrics key={widgetId} data={data.carrefour} />
+              case 'executive-briefing':
+                return <ExecutiveBriefing key={widgetId} merchantId={data.carrefour.merchant_id} />
+              case 'insights-panel':
+                return <InsightsPanel key={widgetId} />
+              case 'anomaly-alerts':
+                return <AnomalyAlerts key={widgetId} merchantId={data.carrefour.merchant_id} />
+              case 'recommendations':
+                return <RecommendationCards key={widgetId} merchantId={data.carrefour.merchant_id} />
+              default:
+                return null
+            }
+          })}
 
           {/* Campaign Overview */}
           <div
@@ -274,6 +307,13 @@ function Dashboard() {
 
         {/* AI Chat */}
         <AIChat />
+
+        {/* Dashboard Customizer Modal */}
+        <DashboardCustomizer
+          isOpen={showCustomizer}
+          onClose={() => setShowCustomizer(false)}
+          onLayoutChange={setLayout}
+        />
       </div>
     </div>
   )

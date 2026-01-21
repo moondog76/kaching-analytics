@@ -50,25 +50,36 @@ export class DataLoader {
   /**
    * Load merchant data by merchant ID (for multi-tenant support)
    */
-  static async loadMerchantDataById(merchantId: string): Promise<{
+  static async loadMerchantDataById(
+    merchantId: string,
+    options?: { startDate?: Date; endDate?: Date }
+  ): Promise<{
     carrefour: MerchantMetrics
     competitors: CompetitorData[]
     historical: MerchantMetrics[]
+    dateRange: { startDate: string; endDate: string }
   } | null> {
     try {
-      // Get current merchant metrics
-      const merchantData = await this.getMerchantMetrics(merchantId)
+      const endDate = options?.endDate || new Date()
+      const startDate = options?.startDate || subDays(endDate, 30)
 
-      // Get competitors
-      const competitors = await this.getCompetitors(merchantId)
+      // Get current merchant metrics for date range
+      const merchantData = await this.getMerchantMetrics(merchantId, startDate, endDate)
 
-      // Get historical data (last 30 days)
-      const historical = await this.getHistoricalMetrics(merchantId, 30)
+      // Get competitors for the same date range
+      const competitors = await this.getCompetitors(merchantId, startDate, endDate)
+
+      // Get historical data for the date range
+      const historical = await this.getHistoricalMetricsByRange(merchantId, startDate, endDate)
 
       return {
         carrefour: merchantData, // Keep "carrefour" key for backward compatibility
         competitors,
-        historical
+        historical,
+        dateRange: {
+          startDate: format(startDate, 'yyyy-MM-dd'),
+          endDate: format(endDate, 'yyyy-MM-dd')
+        }
       }
     } catch (error) {
       console.error('Error loading merchant data by ID:', error)
@@ -79,9 +90,13 @@ export class DataLoader {
   /**
    * Get metrics for a specific merchant - optimized
    */
-  static async getMerchantMetrics(merchantId: string): Promise<MerchantMetrics> {
-    const today = new Date()
-    const startDate = subDays(today, 30)
+  static async getMerchantMetrics(
+    merchantId: string,
+    startDate?: Date,
+    endDate?: Date
+  ): Promise<MerchantMetrics> {
+    const end = endDate || new Date()
+    const start = startDate || subDays(end, 30)
 
     // Single query: get merchant with recent daily metrics
     const merchant = await prisma.merchants.findUnique({
@@ -89,10 +104,9 @@ export class DataLoader {
       include: {
         daily_metrics: {
           where: {
-            date: { gte: startDate, lte: today }
+            date: { gte: start, lte: end }
           },
-          orderBy: { date: 'desc' },
-          take: 30
+          orderBy: { date: 'desc' }
         }
       }
     })
@@ -120,7 +134,7 @@ export class DataLoader {
         cashback_percent: Number(merchant.cashback_percent || 0),
         campaign_active: true,
         avg_transaction: totalTransactions > 0 ? totalRevenue / totalTransactions : 0,
-        period: format(today, 'yyyy-MM-dd')
+        period: format(end, 'yyyy-MM-dd')
       }
     }
 
@@ -135,17 +149,21 @@ export class DataLoader {
       cashback_percent: Number(merchant.cashback_percent || 0),
       campaign_active: true,
       avg_transaction: 0,
-      period: format(today, 'yyyy-MM-dd')
+      period: format(end, 'yyyy-MM-dd')
     }
   }
 
   /**
    * Get competitor data - optimized with single query
    */
-  static async getCompetitors(excludeMerchantId: string): Promise<CompetitorData[]> {
+  static async getCompetitors(
+    excludeMerchantId: string,
+    startDate?: Date,
+    endDate?: Date
+  ): Promise<CompetitorData[]> {
     // Get all merchants with their latest daily metrics in a single query
-    const endDate = new Date()
-    const startDate = subDays(endDate, 30)
+    const end = endDate || new Date()
+    const start = startDate || subDays(end, 30)
 
     // Fetch all merchants and aggregate their metrics in one go
     const merchantsWithMetrics = await prisma.merchants.findMany({
@@ -155,7 +173,7 @@ export class DataLoader {
       include: {
         daily_metrics: {
           where: {
-            date: { gte: startDate, lte: endDate }
+            date: { gte: start, lte: end }
           },
           orderBy: { date: 'desc' }
         }
@@ -181,7 +199,7 @@ export class DataLoader {
         cashback_percent: Number(merchant.cashback_percent || 0),
         campaign_active: true,
         avg_transaction: totalTransactions > 0 ? totalRevenue / totalTransactions : 0,
-        period: format(endDate, 'yyyy-MM-dd'),
+        period: format(end, 'yyyy-MM-dd'),
         rank: 0,
         isYou: false
       }
@@ -197,12 +215,22 @@ export class DataLoader {
   }
 
   /**
-   * Get historical metrics for a merchant
+   * Get historical metrics for a merchant (by days)
    */
   static async getHistoricalMetrics(merchantId: string, days: number): Promise<MerchantMetrics[]> {
     const endDate = new Date()
     const startDate = subDays(endDate, days)
+    return this.getHistoricalMetricsByRange(merchantId, startDate, endDate)
+  }
 
+  /**
+   * Get historical metrics for a merchant by date range
+   */
+  static async getHistoricalMetricsByRange(
+    merchantId: string,
+    startDate: Date,
+    endDate: Date
+  ): Promise<MerchantMetrics[]> {
     const dailyMetrics = await prisma.daily_metrics.findMany({
       where: {
         merchant_id: merchantId,

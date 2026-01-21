@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { signOut, useSession } from 'next-auth/react'
+import { format } from 'date-fns'
 import { MerchantMetrics, CompetitorData } from '@/lib/types'
 import ChartBuilder from '@/components/ChartBuilder'
 import ForecastChart from '@/components/ForecastChart'
@@ -10,6 +11,9 @@ import { ExecutiveBriefing } from '@/components/ai/ExecutiveBriefing'
 import { AnomalyAlerts } from '@/components/ai/AnomalyAlerts'
 import { RecommendationCards } from '@/components/ai/RecommendationCards'
 import AIChat from '@/components/AIChat'
+import DateRangePicker, { DateRange, getDefaultDateRange } from '@/components/DateRangePicker'
+import ExportButton from '@/components/ExportButton'
+import CohortAnalysis from '@/components/CohortAnalysis'
 import Link from 'next/link'
 
 export default function AnalyticsPage() {
@@ -19,13 +23,18 @@ export default function AnalyticsPage() {
     competitors: CompetitorData[]
     historical: MerchantMetrics[]
   } | null>(null)
+  const [dateRange, setDateRange] = useState<DateRange>(getDefaultDateRange)
 
-  const [activeTab, setActiveTab] = useState<'trends' | 'forecast' | 'competition' | 'ai'>('trends')
+  const [activeTab, setActiveTab] = useState<'trends' | 'forecast' | 'competition' | 'cohort' | 'ai'>('trends')
 
   useEffect(() => {
     async function loadData() {
       try {
-        const response = await fetch('/api/merchant-data')
+        const params = new URLSearchParams()
+        params.set('startDate', format(dateRange.startDate, 'yyyy-MM-dd'))
+        params.set('endDate', format(dateRange.endDate, 'yyyy-MM-dd'))
+
+        const response = await fetch(`/api/merchant-data?${params.toString()}`)
         const data = await response.json()
         setData(data)
       } catch (error) {
@@ -33,7 +42,7 @@ export default function AnalyticsPage() {
       }
     }
     loadData()
-  }, [session])
+  }, [session, dateRange])
 
   if (!data) {
     return (
@@ -58,8 +67,9 @@ export default function AnalyticsPage() {
                 <div className="text-xl font-semibold text-slate-800">
                   {data?.carrefour?.merchant_name || "Analytics"}
                 </div>
-                <div className="text-sm text-slate-400">Analytics</div>
               </Link>
+              <DateRangePicker value={dateRange} onChange={setDateRange} />
+              <ExportButton dateRange={dateRange} merchantId={data?.carrefour?.merchant_id} />
 
               <nav className="flex gap-1">
                 <Link
@@ -153,6 +163,20 @@ export default function AnalyticsPage() {
             </button>
 
             <button
+              onClick={() => setActiveTab('cohort')}
+              className={`px-6 py-3 font-medium transition-all relative ${
+                activeTab === 'cohort'
+                  ? 'text-blue-600'
+                  : 'text-slate-500 hover:text-slate-900'
+              }`}
+            >
+              Cohorts
+              {activeTab === 'cohort' && (
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500" />
+              )}
+            </button>
+
+            <button
               onClick={() => setActiveTab('ai')}
               className={`px-6 py-3 font-medium transition-all relative ${
                 activeTab === 'ai'
@@ -186,6 +210,10 @@ export default function AnalyticsPage() {
                 yourData={data.carrefour}
                 competitors={data.competitors}
               />
+            )}
+
+            {activeTab === 'cohort' && (
+              <CohortAnalysis merchantId={data.carrefour.merchant_id} />
             )}
 
             {activeTab === 'ai' && (

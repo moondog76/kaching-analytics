@@ -1,6 +1,7 @@
 import './globals.css'
 import type { Metadata, Viewport } from 'next'
 import AuthProvider from '@/components/AuthProvider'
+import { I18nProvider } from '@/lib/i18n'
 
 export const metadata: Metadata = {
   title: 'KaChing Analytics - AI-Powered Insights',
@@ -38,7 +39,9 @@ export default function RootLayout({
       </head>
       <body>
         <AuthProvider>
-          {children}
+          <I18nProvider>
+            {children}
+          </I18nProvider>
         </AuthProvider>
       </body>
     </html>

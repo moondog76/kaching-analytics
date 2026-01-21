@@ -182,3 +182,41 @@ model role_permissions {
   @@unique([role, resource, action])
   @@index([role])
 }
+
+// Scheduled reports for automated email delivery
+model scheduled_reports {
+  id                  String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  merchant_id         String    @db.Uuid
+  created_by          String    @db.Uuid
+  name                String    @db.VarChar(255)
+  frequency           String    @db.VarChar(20)  // 'daily', 'weekly', 'monthly'
+  recipients          String[]                    // Array of email addresses
+  include_competitors Boolean   @default(true)
+  include_historical  Boolean   @default(true)
+  is_active           Boolean   @default(true)
+  last_sent_at        DateTime?
+  next_scheduled_at   DateTime
+  created_at          DateTime  @default(now())
+  updated_at          DateTime  @updatedAt
+
+  @@index([merchant_id])
+  @@index([is_active, next_scheduled_at])
+}
+
+// Notification preferences for alerts
+model notification_settings {
+  id                  String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  user_id             String    @unique @db.Uuid
+  email_anomalies     Boolean   @default(true)
+  email_weekly_digest Boolean   @default(true)
+  email_threshold     Boolean   @default(true)
+  slack_webhook_url   String?   @db.VarChar(500)
+  slack_anomalies     Boolean   @default(false)
+  slack_threshold     Boolean   @default(false)
+  threshold_revenue   Decimal?  @db.Decimal(12, 2)  // Alert if revenue drops below
+  threshold_txn       Int?                          // Alert if transactions drop below
+  created_at          DateTime  @default(now())
+  updated_at          DateTime  @updatedAt
+
+  @@index([user_id])
+}

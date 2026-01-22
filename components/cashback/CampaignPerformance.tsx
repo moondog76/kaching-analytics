@@ -140,50 +140,83 @@ export default function CampaignPerformance({
         </div>
       </div>
 
-      {/* Campaign Distribution */}
+      {/* Campaign Distribution - Donut Chart */}
       <div className="pluxee-card">
-        <h3 className="font-semibold text-pluxee-deep-blue mb-6">Campaign Distribution</h3>
-
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-          {distributionItems.map((item, index) => (
-            <div key={index} className="text-center">
-              {/* Circular Progress Indicator */}
-              <div className="relative w-24 h-24 mx-auto mb-3">
-                <svg className="w-24 h-24 transform -rotate-90">
-                  <circle
-                    cx="48"
-                    cy="48"
-                    r="40"
-                    className="stroke-slate-100"
-                    strokeWidth="8"
-                    fill="none"
-                  />
-                  <circle
-                    cx="48"
-                    cy="48"
-                    r="40"
-                    className={item.color.replace('bg-', 'stroke-')}
-                    strokeWidth="8"
-                    fill="none"
-                    strokeDasharray={`${item.value * 2.51} 251`}
-                    strokeLinecap="round"
-                  />
-                </svg>
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <span className="text-xl font-bold text-pluxee-deep-blue">{item.value}%</span>
-                </div>
-              </div>
-              <div className="text-sm font-medium text-pluxee-deep-blue">{item.label}</div>
-            </div>
-          ))}
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h3 className="font-semibold text-pluxee-deep-blue">Campaign Distribution</h3>
+            <p className="text-sm text-slate-500">Breakdown of campaign objectives</p>
+          </div>
         </div>
 
-        <div className="mt-6 pt-4 border-t border-slate-100">
-          <div className="flex items-center justify-center gap-6 text-xs text-slate-500">
+        <div className="flex items-center gap-8">
+          {/* Donut Chart */}
+          <div className="relative w-48 h-48 flex-shrink-0">
+            <svg viewBox="0 0 100 100" className="w-full h-full transform -rotate-90">
+              {/* Background circle */}
+              <circle
+                cx="50"
+                cy="50"
+                r="40"
+                fill="none"
+                stroke="#f1f5f9"
+                strokeWidth="12"
+              />
+              {/* Segments */}
+              {distributionItems.reduce((acc, item, index) => {
+                const circumference = 2 * Math.PI * 40
+                const segmentLength = (item.value / 100) * circumference
+                const gapLength = circumference - segmentLength
+                const colors: Record<string, string> = {
+                  'bg-pluxee-ultra-green': '#00EB5E',
+                  'bg-pluxee-boldly-blue': '#17CCF9',
+                  'bg-pluxee-very-yellow': '#FFE566',
+                  'bg-pluxee-coral': '#FF6B6B'
+                }
+
+                acc.elements.push(
+                  <circle
+                    key={index}
+                    cx="50"
+                    cy="50"
+                    r="40"
+                    fill="none"
+                    stroke={colors[item.color] || '#94a3b8'}
+                    strokeWidth="12"
+                    strokeDasharray={`${segmentLength} ${gapLength}`}
+                    strokeDashoffset={-acc.offset}
+                    strokeLinecap="round"
+                    className="transition-all duration-700"
+                  />
+                )
+                acc.offset += segmentLength
+                return acc
+              }, { elements: [] as JSX.Element[], offset: 0 }).elements}
+            </svg>
+            {/* Center text */}
+            <div className="absolute inset-0 flex flex-col items-center justify-center">
+              <span className="text-2xl font-bold text-pluxee-deep-blue">100%</span>
+              <span className="text-xs text-slate-500">Total</span>
+            </div>
+          </div>
+
+          {/* Legend with bars */}
+          <div className="flex-1 space-y-3">
             {distributionItems.map((item, index) => (
-              <div key={index} className="flex items-center gap-2">
-                <div className={`w-3 h-3 rounded-full ${item.color}`} />
-                <span>{item.label}</span>
+              <div key={index} className="group">
+                <div className="flex items-center justify-between mb-1">
+                  <div className="flex items-center gap-2">
+                    <div className={`w-3 h-3 rounded-full ${item.color}`} />
+                    <span className="text-sm font-medium text-slate-700">{item.label}</span>
+                  </div>
+                  <span className="text-sm font-bold text-pluxee-deep-blue">{item.value}%</span>
+                </div>
+                <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                  <div
+                    className={`h-full ${item.color} rounded-full transition-all duration-500`}
+                    style={{ width: `${item.value}%` }}
+                  />
+                </div>
               </div>
             ))}
           </div>

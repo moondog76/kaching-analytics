@@ -36,6 +36,8 @@ export default function AdminPage() {
   const [activeTab, setActiveTab] = useState<'users' | 'merchants'>('users')
   const [users, setUsers] = useState<User[]>([])
   const [merchants, setMerchants] = useState<Merchant[]>([])
+  const [allMerchants, setAllMerchants] = useState<Merchant[]>([])
+  const [selectedMerchantId, setSelectedMerchantId] = useState<string>('')
   const [isLoading, setIsLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [showCreateUser, setShowCreateUser] = useState(false)
@@ -44,6 +46,18 @@ export default function AdminPage() {
   const [success, setSuccess] = useState<string | null>(null)
 
   const userRole = (session?.user as any)?.role
+
+  // Load all merchants for the selector (super_admin only)
+  useEffect(() => {
+    if (userRole === 'super_admin') {
+      fetch('/api/admin/merchants')
+        .then(res => res.json())
+        .then(data => {
+          if (data.merchants) setAllMerchants(data.merchants)
+        })
+        .catch(console.error)
+    }
+  }, [userRole])
 
   // Check admin access
   useEffect(() => {
@@ -55,17 +69,24 @@ export default function AdminPage() {
   // Load data
   useEffect(() => {
     loadData()
-  }, [activeTab, search])
+  }, [activeTab, search, selectedMerchantId])
 
   async function loadData() {
     setIsLoading(true)
     try {
       if (activeTab === 'users') {
-        const res = await fetch(`/api/admin/users${search ? `?search=${encodeURIComponent(search)}` : ''}`)
+        const params = new URLSearchParams()
+        if (search) params.set('search', search)
+        if (selectedMerchantId) params.set('merchantId', selectedMerchantId)
+        const res = await fetch(`/api/admin/users${params.toString() ? `?${params.toString()}` : ''}`)
         const data = await res.json()
         if (data.users) setUsers(data.users)
       } else {
-        const res = await fetch(`/api/admin/merchants?stats=true${search ? `&search=${encodeURIComponent(search)}` : ''}`)
+        const params = new URLSearchParams()
+        params.set('stats', 'true')
+        if (search) params.set('search', search)
+        if (selectedMerchantId) params.set('id', selectedMerchantId)
+        const res = await fetch(`/api/admin/merchants?${params.toString()}`)
         const data = await res.json()
         if (data.merchants) setMerchants(data.merchants)
       }
@@ -128,14 +149,33 @@ export default function AdminPage() {
       {/* Header */}
       <header className="border-b border-slate-200 bg-white">
         <div className="max-w-7xl mx-auto px-8 py-5 flex justify-between items-center">
-          <div className="flex items-center gap-4">
-            <Link href="/" className="text-slate-500 hover:text-slate-900 transition">
-              ← Dashboard
+          <div className="flex items-center gap-6">
+            <Link href="/analytics" className="text-slate-500 hover:text-slate-900 transition">
+              ← Analytics
             </Link>
             <div className="text-xl font-semibold text-slate-800 flex items-center gap-2">
               <Shield className="w-5 h-5 text-blue-500" />
               Admin Panel
             </div>
+
+            {/* Merchant Selector - for super_admin to filter by merchant */}
+            {userRole === 'super_admin' && allMerchants.length > 0 && (
+              <div className="flex items-center gap-2 pl-6 border-l border-slate-200">
+                <label className="text-sm text-slate-500">Viewing:</label>
+                <select
+                  value={selectedMerchantId}
+                  onChange={(e) => setSelectedMerchantId(e.target.value)}
+                  className="px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-700 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                >
+                  <option value="">All Merchants</option>
+                  {allMerchants.map(merchant => (
+                    <option key={merchant.id} value={merchant.id}>
+                      {merchant.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
           </div>
           <div className="text-sm text-slate-500">
             Logged in as <span className="text-blue-600 font-medium">{userRole}</span>

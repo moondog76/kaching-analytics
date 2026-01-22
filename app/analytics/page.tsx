@@ -125,106 +125,118 @@ function AnalyticsContent() {
       <div className="relative z-10">
         {/* Header */}
         <header className="border-b border-slate-200 bg-white sticky top-0 z-40">
-          <div className="max-w-7xl mx-auto px-8 py-5 flex justify-between items-center">
-            <div className="flex items-center gap-6">
-              <div className="text-xl font-semibold text-pluxee-deep-blue">
-                {data?.carrefour?.merchant_name || "Analytics"}
-              </div>
-              <DateRangePicker value={dateRange} onChange={setDateRange} />
-              <ExportButton dateRange={dateRange} merchantId={data?.carrefour?.merchant_id} />
+          <div className="max-w-7xl mx-auto px-8 py-4">
+            {/* Main navigation row */}
+            <div className="flex items-center justify-between">
+              {/* Left side: Merchant + Filters + Main Nav */}
+              <div className="flex items-center">
+                {/* Merchant Name */}
+                <div className="text-xl font-semibold text-pluxee-deep-blue pr-6 border-r border-slate-200">
+                  {data?.carrefour?.merchant_name || "Analytics"}
+                </div>
 
-              {/* Primary Navigation - Cashback Insights | Retail Insights */}
-              <nav className="flex gap-1 bg-slate-100 rounded-lg p-1">
-                <button
-                  onClick={() => handleInsightChange('cashback')}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${
-                    activeInsight === 'cashback'
-                      ? 'bg-white text-pluxee-deep-blue shadow-sm'
-                      : 'text-slate-600 hover:text-slate-900'
-                  }`}
-                >
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  Cashback Insights
-                </button>
-                <button
-                  onClick={() => handleInsightChange('retail')}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${
-                    activeInsight === 'retail'
-                      ? 'bg-white text-pluxee-deep-blue shadow-sm'
-                      : 'text-slate-600 hover:text-slate-900'
-                  } ${!merchantAccess.hasRetailInsightsAccess ? 'opacity-60' : ''}`}
-                  title={!merchantAccess.hasRetailInsightsAccess ? getUpgradePrompt('Retail Insights') : 'Market intelligence & competitive analysis'}
-                >
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                  </svg>
-                  Retail Insights
-                  <span className="pluxee-badge pluxee-badge--premium text-xs">Pro</span>
-                </button>
-              </nav>
-            </div>
+                {/* Filters Group */}
+                <div className="flex items-center gap-3 px-6 border-r border-slate-200">
+                  <DateRangePicker value={dateRange} onChange={setDateRange} />
+                  <ExportButton dateRange={dateRange} merchantId={data?.carrefour?.merchant_id} />
+                </div>
 
-            <div className="flex items-center gap-3">
-              {/* View Mode Toggle */}
-              <div className="flex bg-slate-100 rounded-lg p-1">
-                <button
-                  onClick={() => setViewMode('insights')}
-                  className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all ${
-                    viewMode === 'insights'
-                      ? 'bg-white text-pluxee-deep-blue shadow-sm'
-                      : 'text-slate-500 hover:text-slate-700'
-                  }`}
-                >
-                  Insights
-                </button>
-                <button
-                  onClick={() => setViewMode('legacy')}
-                  className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all ${
-                    viewMode === 'legacy'
-                      ? 'bg-white text-pluxee-deep-blue shadow-sm'
-                      : 'text-slate-500 hover:text-slate-700'
-                  }`}
-                >
-                  Charts
-                </button>
-              </div>
+                {/* Primary Navigation - Cashback Insights | Retail Insights */}
+                <nav className="flex gap-1 bg-slate-100 rounded-lg p-1 mx-6">
+                  <button
+                    onClick={() => handleInsightChange('cashback')}
+                    className={`px-5 py-2.5 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${
+                      activeInsight === 'cashback'
+                        ? 'bg-white text-pluxee-deep-blue shadow-sm'
+                        : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Cashback Insights
+                  </button>
+                  <button
+                    onClick={() => handleInsightChange('retail')}
+                    className={`px-5 py-2.5 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${
+                      activeInsight === 'retail'
+                        ? 'bg-white text-pluxee-deep-blue shadow-sm'
+                        : 'text-slate-600 hover:text-slate-900'
+                    } ${!merchantAccess.hasRetailInsightsAccess ? 'opacity-60' : ''}`}
+                    title={!merchantAccess.hasRetailInsightsAccess ? getUpgradePrompt('Retail Insights') : 'Market intelligence & competitive analysis'}
+                  >
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    </svg>
+                    Retail Insights
+                    <span className="pluxee-badge pluxee-badge--premium text-xs">Pro</span>
+                  </button>
+                </nav>
 
-              {/* User info */}
-              <div className="flex items-center gap-3 px-4 py-2 bg-white border border-slate-200 rounded-lg shadow-card">
-                <div className="w-2 h-2 rounded-full bg-pluxee-ultra-green animate-pulse" />
-                <span className="text-sm font-medium text-slate-700">
-                  {session?.user?.name || data.carrefour.merchant_name}
-                </span>
-                {merchantAccess.tier === 'premium' && (
-                  <span className="pluxee-badge pluxee-badge--premium text-xs">Pro</span>
-                )}
+                {/* View Mode Toggle */}
+                <div className="flex bg-slate-100 rounded-lg p-1">
+                  <button
+                    onClick={() => setViewMode('insights')}
+                    className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${
+                      viewMode === 'insights'
+                        ? 'bg-white text-pluxee-deep-blue shadow-sm'
+                        : 'text-slate-500 hover:text-slate-700'
+                    }`}
+                  >
+                    Insights
+                  </button>
+                  <button
+                    onClick={() => setViewMode('legacy')}
+                    className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${
+                      viewMode === 'legacy'
+                        ? 'bg-white text-pluxee-deep-blue shadow-sm'
+                        : 'text-slate-500 hover:text-slate-700'
+                    }`}
+                  >
+                    Charts
+                  </button>
+                </div>
               </div>
 
-              {/* Settings & Admin */}
-              <Link
-                href="/settings"
-                className="px-3 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-all"
-              >
-                Settings
-              </Link>
-              {(session?.user as any)?.role === 'super_admin' || (session?.user as any)?.role === 'admin' ? (
+              {/* Right side: User + Settings + Admin + Logout */}
+              <div className="flex items-center gap-2">
+                {/* User info */}
+                <div className="flex items-center gap-2 px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg mr-2">
+                  <div className="w-2 h-2 rounded-full bg-pluxee-ultra-green animate-pulse" />
+                  <span className="text-sm font-medium text-slate-700">
+                    {session?.user?.name || data.carrefour.merchant_name}
+                  </span>
+                  {merchantAccess.tier === 'premium' && (
+                    <span className="pluxee-badge pluxee-badge--premium text-xs">Pro</span>
+                  )}
+                </div>
+
+                {/* Settings */}
                 <Link
-                  href="/admin"
-                  className="px-3 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-all"
+                  href="/settings"
+                  className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-all"
                 >
-                  Admin
+                  Settings
                 </Link>
-              ) : null}
 
-              {/* Logout button */}
-              <button
-                onClick={() => signOut({ callbackUrl: '/login' })}
-                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded-lg text-sm font-medium text-slate-700 transition-colors"
-              >
-                Logout
-              </button>
+                {/* Admin Link */}
+                {(session?.user as any)?.role === 'super_admin' || (session?.user as any)?.role === 'admin' ? (
+                  <Link
+                    href="/admin"
+                    className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-all"
+                  >
+                    Admin
+                  </Link>
+                ) : null}
+
+                {/* Logout button */}
+                <button
+                  onClick={() => signOut({ callbackUrl: '/login' })}
+                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded-lg text-sm font-medium text-slate-700 transition-colors"
+                >
+                  Logout
+                </button>
+              </div>
             </div>
           </div>
         </header>

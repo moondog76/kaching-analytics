@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import {
   Users, Building2, Plus, Search, MoreVertical,
-  Check, X, Key, Trash2, Edit, ChevronRight, Shield
+  Check, X, Key, Trash2, Edit, ChevronRight, Shield, MessageSquare, FileText, Upload
 } from 'lucide-react'
 
 interface User {
@@ -182,6 +182,31 @@ export default function AdminPage() {
             <Building2 className="w-4 h-4" />
             Merchants
           </button>
+
+          <div className="flex-1" />
+
+          {/* Quick Links */}
+          <Link
+            href="/admin/ai-conversations"
+            className="flex items-center gap-2 px-4 py-2 bg-pluxee-ultra-green/10 border border-pluxee-ultra-green/20 text-pluxee-deep-blue rounded-lg font-medium hover:bg-pluxee-ultra-green/20 transition"
+          >
+            <MessageSquare className="w-4 h-4" />
+            AI Conversations
+          </Link>
+          <Link
+            href="/admin/audit-logs"
+            className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-600 rounded-lg font-medium hover:text-slate-900 hover:bg-slate-50 transition"
+          >
+            <FileText className="w-4 h-4" />
+            Audit Logs
+          </Link>
+          <Link
+            href="/admin/import"
+            className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-600 rounded-lg font-medium hover:text-slate-900 hover:bg-slate-50 transition"
+          >
+            <Upload className="w-4 h-4" />
+            Import Data
+          </Link>
         </div>
 
         {/* Search & Actions */}

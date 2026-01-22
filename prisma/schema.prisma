@@ -55,6 +55,8 @@ model merchants {
   anomalies          anomalies[]
   recommendations    ai_recommendations[]
   churn_analyses     churn_analyses[]
+  ai_chat_messages   ai_chat_messages[]
+  ai_chat_sessions   ai_chat_sessions[]
 }
 
 model api_logs {
@@ -105,9 +107,11 @@ model users {
   sso_provider  String?      @db.VarChar(50)  // 'azure_ad', 'okta', 'google'
   sso_id        String?      @db.VarChar(255)
   
-  merchant      merchants?   @relation(fields: [merchant_id], references: [id])
-  audit_logs    audit_logs[]
-  sessions      sessions[]
+  merchant           merchants?         @relation(fields: [merchant_id], references: [id])
+  audit_logs         audit_logs[]
+  sessions           sessions[]
+  ai_chat_messages   ai_chat_messages[]
+  ai_chat_sessions   ai_chat_sessions[]
 
   @@index([email])
   @@index([merchant_id])
@@ -453,12 +457,61 @@ model ai_chat_messages {
   id           String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
   merchant_id  String   @db.Uuid
   user_id      String?  @db.Uuid
+  user_email   String?  @db.VarChar(255)
   session_id   String   @db.VarChar(100)
   role         String   @db.VarChar(20)   // 'user', 'assistant'
   content      String   @db.Text
   context_mode String   @db.VarChar(20)   // 'cashback' or 'retail'
   timestamp    DateTime @default(now())
 
+  merchant     merchants @relation(fields: [merchant_id], references: [id], onDelete: Cascade)
+  user         users?    @relation(fields: [user_id], references: [id], onDelete: SetNull)
+
   @@index([merchant_id, session_id])
   @@index([timestamp])
+  @@index([user_id])
+}
+
+// AI conversation sessions (aggregated view)
+model ai_chat_sessions {
+  id             String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  session_id     String   @unique @db.VarChar(100)
+  merchant_id    String   @db.Uuid
+  user_id        String?  @db.Uuid
+  user_email     String?  @db.VarChar(255)
+  context_mode   String   @db.VarChar(20)
+  message_count  Int      @default(0)
+  first_message  String?  @db.Text
+  started_at     DateTime @default(now())
+  last_message_at DateTime @default(now())
+  flagged        Boolean  @default(false)
+  starred        Boolean  @default(false)
+  tags           String[] @default([])
+  summary        String?  @db.Text
+
+  merchant       merchants @relation(fields: [merchant_id], references: [id], onDelete: Cascade)
+  user           users?    @relation(fields: [user_id], references: [id], onDelete: SetNull)
+
+  @@index([merchant_id])
+  @@index([started_at])
+  @@index([flagged])
+  @@index([starred])
+}
+
+// Admin AI conversation insights (meta-analysis)
+model admin_conversation_insights {
+  id                     String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  period_start           DateTime
+  period_end             DateTime
+  top_topics             Json?    // [{topic, count, example_ids}]
+  pain_points            Json?    // [{issue, count, severity, example_ids}]
+  feature_requests       Json?    // [{request, count, example_ids}]
+  confusion_points       Json?    // [{area, count, example_ids}]
+  total_conversations    Int      @default(0)
+  avg_messages_per_conv  Decimal? @db.Decimal(5, 2)
+  resolution_rate        Decimal? @db.Decimal(5, 2)
+  full_analysis_text     String?  @db.Text
+  created_at             DateTime @default(now())
+
+  @@index([period_start, period_end])
 }

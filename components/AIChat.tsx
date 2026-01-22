@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import { AIContextMode } from '@/types/analytics'
 import { getInitialGreeting, isCompetitorQuery, AI_QUICK_RESPONSES } from '@/lib/ai-prompts'
 
@@ -16,6 +16,11 @@ interface AIChatProps {
   merchantName?: string
   merchantId?: string
   onUpgradeClick?: () => void
+}
+
+// Generate a unique session ID
+function generateSessionId(): string {
+  return `chat_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
 }
 
 export default function AIChat({
@@ -39,6 +44,32 @@ export default function AIChat({
   const [isMinimized, setIsMinimized] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const prevContextMode = useRef(contextMode)
+  const sessionIdRef = useRef<string>(generateSessionId())
+  const pendingMessagesRef = useRef<ChatMessage[]>([])
+
+  // Log messages to the database
+  const logMessages = useCallback(async (messagesToLog: ChatMessage[]) => {
+    if (messagesToLog.length === 0 || merchantId === 'unknown') return
+
+    try {
+      await fetch('/api/ai-chat/log', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sessionId: sessionIdRef.current,
+          merchantId,
+          contextMode,
+          messages: messagesToLog.map(m => ({
+            role: m.role,
+            content: m.content,
+            timestamp: m.timestamp.toISOString()
+          }))
+        })
+      })
+    } catch (error) {
+      console.error('Failed to log chat messages:', error)
+    }
+  }, [merchantId, contextMode])
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -51,6 +82,8 @@ export default function AIChat({
   // Reset chat when context mode changes
   useEffect(() => {
     if (prevContextMode.current !== contextMode) {
+      // Generate new session ID for new context
+      sessionIdRef.current = generateSessionId()
       const newGreeting = getInitialGreeting(contextMode)
       setMessages([
         {
@@ -92,6 +125,8 @@ export default function AIChat({
       }
       setMessages(prev => [...prev, redirectMessage])
       setIsLoading(false)
+      // Log both messages
+      logMessages([userMessage, redirectMessage])
       return
     }
 
@@ -124,6 +159,8 @@ export default function AIChat({
           suggested_followups: getFallbackFollowups(contextMode)
         }
         setMessages(prev => [...prev, fallbackResponse])
+        // Log both messages
+        logMessages([userMessage, fallbackResponse])
       } else {
         // Real AI response
         const assistantMessage: ChatMessage = {
@@ -133,6 +170,8 @@ export default function AIChat({
           suggested_followups: data.suggested_followups
         }
         setMessages(prev => [...prev, assistantMessage])
+        // Log both messages
+        logMessages([userMessage, assistantMessage])
       }
     } catch (error) {
       console.error('Chat error:', error)
@@ -142,6 +181,8 @@ export default function AIChat({
         timestamp: new Date()
       }
       setMessages(prev => [...prev, errorMessage])
+      // Still log the user message and error
+      logMessages([userMessage, errorMessage])
     } finally {
       setIsLoading(false)
     }

@@ -11,7 +11,7 @@ export class DataLoader {
    * Load merchant data by email (for logged-in user)
    */
   static async loadMerchantDataByEmail(email: string): Promise<{
-    carrefour: MerchantMetrics
+    merchant: MerchantMetrics
     competitors: CompetitorData[]
     historical: MerchantMetrics[]
   } | null> {
@@ -29,15 +29,15 @@ export class DataLoader {
 
       // Get current merchant metrics
       const merchantData = await this.getMerchantMetrics(user.merchant.id)
-      
+
       // Get competitors
       const competitors = await this.getCompetitors(user.merchant.id)
-      
+
       // Get historical data (last 30 days)
       const historical = await this.getHistoricalMetrics(user.merchant.id, 30)
 
       return {
-        carrefour: merchantData,
+        merchant: merchantData,
         competitors,
         historical
       }
@@ -54,7 +54,7 @@ export class DataLoader {
     merchantId: string,
     options?: { startDate?: Date; endDate?: Date }
   ): Promise<{
-    carrefour: MerchantMetrics
+    merchant: MerchantMetrics
     competitors: CompetitorData[]
     historical: MerchantMetrics[]
     dateRange: { startDate: string; endDate: string }
@@ -73,7 +73,7 @@ export class DataLoader {
       const historical = await this.getHistoricalMetricsByRange(merchantId, startDate, endDate)
 
       return {
-        carrefour: merchantData, // Keep "carrefour" key for backward compatibility
+        merchant: merchantData,
         competitors,
         historical,
         dateRange: {
@@ -270,13 +270,13 @@ export class DataLoader {
    * Fallback to demo data (for development/demo purposes)
    */
   static loadDemoData(): {
-    carrefour: MerchantMetrics
+    merchant: MerchantMetrics
     competitors: CompetitorData[]
     historical: MerchantMetrics[]
   } {
-    const carrefour: MerchantMetrics = {
-      merchant_id: 'demo-carrefour-id',
-      merchant_name: 'Carrefour',
+    const merchant: MerchantMetrics = {
+      merchant_id: 'demo-store-id',
+      merchant_name: 'Demo Store',
       transactions: 482,
       revenue: 272978,
       customers: 416,
@@ -292,14 +292,14 @@ export class DataLoader {
       { merchant_id: 'demo-kaufland-id', merchant_name: 'Kaufland', transactions: 723, revenue: 389200, customers: 634, cashback_paid: 13622, cashback_percent: 3.5, campaign_active: true, avg_transaction: 538.4, period: format(new Date(), 'yyyy-MM-dd'), rank: 2, isYou: false },
       { merchant_id: 'demo-auchan-id', merchant_name: 'Auchan', transactions: 634, revenue: 325600, customers: 542, cashback_paid: 8768, cashback_percent: 2.7, campaign_active: true, avg_transaction: 513.6, period: format(new Date(), 'yyyy-MM-dd'), rank: 3, isYou: false },
       { merchant_id: 'demo-megaimage-id', merchant_name: 'Mega Image', transactions: 567, revenue: 289400, customers: 489, cashback_paid: 9812, cashback_percent: 3.4, campaign_active: true, avg_transaction: 510.4, period: format(new Date(), 'yyyy-MM-dd'), rank: 4, isYou: false },
-      { merchant_id: 'demo-carrefour-id', merchant_name: 'Carrefour', transactions: 482, revenue: 272978, customers: 416, cashback_paid: 13649, cashback_percent: 5.0, campaign_active: true, avg_transaction: 566.1, period: format(new Date(), 'yyyy-MM-dd'), rank: 5, isYou: true },
+      { merchant_id: 'demo-store-id', merchant_name: 'Demo Store', transactions: 482, revenue: 272978, customers: 416, cashback_paid: 13649, cashback_percent: 5.0, campaign_active: true, avg_transaction: 566.1, period: format(new Date(), 'yyyy-MM-dd'), rank: 5, isYou: true },
       { merchant_id: 'demo-profi-id', merchant_name: 'Profi', transactions: 423, revenue: 198700, customers: 367, cashback_paid: 5961, cashback_percent: 3.0, campaign_active: true, avg_transaction: 469.7, period: format(new Date(), 'yyyy-MM-dd'), rank: 6, isYou: false },
       { merchant_id: 'demo-penny-id', merchant_name: 'Penny', transactions: 389, revenue: 176300, customers: 334, cashback_paid: 4408, cashback_percent: 2.5, campaign_active: true, avg_transaction: 453.3, period: format(new Date(), 'yyyy-MM-dd'), rank: 7, isYou: false },
     ]
 
-    const historical = this.generateHistoricalData(carrefour, 30)
+    const historical = this.generateHistoricalData(merchant, 30)
 
-    return { carrefour, competitors, historical }
+    return { merchant, competitors, historical }
   }
 
   /**

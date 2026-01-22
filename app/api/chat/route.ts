@@ -13,8 +13,8 @@ export async function POST(request: NextRequest) {
       query,
       conversationHistory = [],
       contextMode = 'cashback' as AIContextMode,
-      merchantName = 'Carrefour',
-      merchantId = 'carrefour'
+      merchantName = 'Demo Store',
+      merchantId = 'demo-store'
     } = await request.json()
     
     if (!query) {
@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
     const demoData = DataLoader.loadDemoData()
     
     // Generate simple historical data for forecasting
-    const currentData = demoData.carrefour
+    const currentData = demoData.merchant
     const historicalData: MerchantMetrics[] = []
     
     // Generate 30 days of historical data
@@ -100,7 +100,7 @@ export async function POST(request: NextRequest) {
       const response = await agent.processQuery(
         query,
         context,
-        demoData.carrefour,
+        demoData.merchant,
         demoData.competitors,
         historicalData
       )
@@ -152,7 +152,7 @@ export async function POST(request: NextRequest) {
 // Generate intelligent fallback responses
 function generateFallbackResponse(query: string, data: any) {
   const q = query.toLowerCase()
-  const carrefour = data.carrefour
+  const merchant = data.merchant
   const competitors = data.competitors
   
   const formatCurrency = (amount: number) => `${(amount / 100).toFixed(2)} RON`
@@ -168,11 +168,11 @@ Your 5% cashback rate is the most aggressive among competitors (vs 3% average). 
 → Recommendation: Monitor ROI closely and consider tiered rates for high-value customers
 
 **2. 📊 Strong Position with Room to Grow**  
-You're #5 out of ${competitors.length} active merchants with ${formatNumber(carrefour.transactions)} transactions. You're only ${competitors[3].transactions - carrefour.transactions} transactions behind #4.
+You're #5 out of ${competitors.length} active merchants with ${formatNumber(merchant.transactions)} transactions. You're only ${competitors[3].transactions - merchant.transactions} transactions behind #4.
 → Recommendation: Focus on customer retention to climb rankings efficiently
 
 **3. 💰 Healthy Campaign ROI**
-Your ROI is ${((carrefour.revenue - carrefour.cashback_paid) / carrefour.cashback_paid).toFixed(2)}x - in the healthy range of 2-4x.
+Your ROI is ${((merchant.revenue - merchant.cashback_paid) / merchant.cashback_paid).toFixed(2)}x - in the healthy range of 2-4x.
 → Recommendation: Maintain current strategy while testing optimization
 
 *Note: This is using fallback mode. API key may not be configured correctly.*`,
@@ -189,9 +189,9 @@ Your ROI is ${((carrefour.revenue - carrefour.cashback_paid) / carrefour.cashbac
     message: `I can help you analyze your Carrefour campaign! Here's what I can do:
 
 **📊 Campaign Analysis:**
-• ${formatNumber(carrefour.transactions)} transactions generating ${formatCurrency(carrefour.revenue)}
-• ${formatNumber(carrefour.customers)} active customers
-• ${carrefour.cashback_percent}% cashback rate (highest in market)
+• ${formatNumber(merchant.transactions)} transactions generating ${formatCurrency(merchant.revenue)}
+• ${formatNumber(merchant.customers)} active customers
+• ${merchant.cashback_percent}% cashback rate (highest in market)
 
 **💡 Try asking:**
 • "What are my top insights?"

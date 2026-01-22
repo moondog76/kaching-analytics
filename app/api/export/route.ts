@@ -55,7 +55,7 @@ export async function GET(request: NextRequest) {
 
       if (dbData) {
         data = {
-          merchantData: dbData.carrefour,
+          merchantData: dbData.merchant,
           competitors: dbData.competitors,
           historical: dbData.historical,
           dateRange: dbData.dateRange
@@ -64,7 +64,7 @@ export async function GET(request: NextRequest) {
         // Fallback to demo
         const demoData = DataLoader.loadDemoData()
         data = {
-          merchantData: demoData.carrefour,
+          merchantData: demoData.merchant,
           competitors: demoData.competitors,
           historical: demoData.historical,
           dateRange: {
@@ -77,7 +77,7 @@ export async function GET(request: NextRequest) {
       // No merchant - return demo data
       const demoData = DataLoader.loadDemoData()
       data = {
-        merchantData: demoData.carrefour,
+        merchantData: demoData.merchant,
         competitors: demoData.competitors,
         historical: demoData.historical,
         dateRange: {

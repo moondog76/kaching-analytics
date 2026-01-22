@@ -40,7 +40,7 @@ function AnalyticsContent() {
   const { data: session } = useSession()
   const searchParams = useSearchParams()
   const [data, setData] = useState<{
-    carrefour: MerchantMetrics
+    merchant: MerchantMetrics
     competitors: CompetitorData[]
     historical: MerchantMetrics[]
   } | null>(null)
@@ -129,14 +129,14 @@ function AnalyticsContent() {
                     <text x="40" y="22" fontFamily="system-ui, -apple-system, sans-serif" fontSize="16" fontWeight="700" fill="#221C46">pluxee</text>
                   </svg>
                   <span className="text-xl font-semibold text-pluxee-deep-blue">
-                    {data?.carrefour?.merchant_name || "Analytics"}
+                    {data?.merchant?.merchant_name || "Analytics"}
                   </span>
                 </div>
 
                 {/* Filters Group */}
                 <div className="flex items-center gap-3 px-6 border-r border-slate-200">
                   <DateRangePicker value={dateRange} onChange={setDateRange} />
-                  <ExportButton dateRange={dateRange} merchantId={data?.carrefour?.merchant_id} />
+                  <ExportButton dateRange={dateRange} merchantId={data?.merchant?.merchant_id} />
                 </div>
 
                 {/* Primary Navigation - Cashback Insights | Retail Insights */}
@@ -178,7 +178,7 @@ function AnalyticsContent() {
                 <div className="flex items-center gap-2 px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg mr-2">
                   <div className="w-2 h-2 rounded-full bg-pluxee-ultra-green animate-pulse" />
                   <span className="text-sm font-medium text-slate-700">
-                    {session?.user?.name || data.carrefour.merchant_name}
+                    {session?.user?.name || data.merchant.merchant_name}
                   </span>
                 </div>
 
@@ -217,18 +217,18 @@ function AnalyticsContent() {
           <div className="animate-fade-in-up">
             {activeInsight === 'cashback' && (
               <CashbackInsights
-                merchantId={data.carrefour.merchant_id}
-                merchantName={data.carrefour.merchant_name}
+                merchantId={data.merchant.merchant_id}
+                merchantName={data.merchant.merchant_name}
                 onContextChange={handleContextChange}
-                merchantData={data.carrefour}
+                merchantData={data.merchant}
                 historicalData={data.historical}
               />
             )}
 
             {activeInsight === 'retail' && merchantAccess.hasRetailInsightsAccess && (
               <RetailInsights
-                merchantId={data.carrefour.merchant_id}
-                merchantName={data.carrefour.merchant_name}
+                merchantId={data.merchant.merchant_id}
+                merchantName={data.merchant.merchant_name}
                 onContextChange={handleContextChange}
               />
             )}
@@ -239,8 +239,8 @@ function AnalyticsContent() {
       {/* Pluxee Analyst Sidebar */}
       <PluxeeAnalystSidebar
         contextMode={aiContextMode}
-        merchantId={data.carrefour.merchant_id}
-        merchantName={data.carrefour.merchant_name}
+        merchantId={data.merchant.merchant_id}
+        merchantName={data.merchant.merchant_name}
       />
 
       {/* Upgrade Modal for Retail Insights */}

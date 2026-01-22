@@ -69,7 +69,7 @@ export async function POST(request: NextRequest) {
 
         // Generate report HTML
         const reportData = {
-          merchantData: data.carrefour,
+          merchantData: data.merchant,
           competitors: report.include_competitors ? data.competitors : [],
           historical: report.include_historical ? data.historical : [],
           dateRange: data.dateRange,
@@ -180,7 +180,7 @@ export async function GET(request: NextRequest) {
 
     // Generate report HTML
     const reportData = {
-      merchantData: data.carrefour,
+      merchantData: data.merchant,
       competitors: report.include_competitors ? data.competitors : [],
       historical: report.include_historical ? data.historical : [],
       dateRange: data.dateRange,

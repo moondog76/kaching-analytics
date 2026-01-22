@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
     
     // Detect insights
     const insights = await InsightsEngine.detectInsights(
-      data.carrefour,
+      data.merchant,
       historical,
       data.competitors
     )

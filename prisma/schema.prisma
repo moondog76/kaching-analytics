@@ -7,13 +7,25 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// Access tier enum
+enum AccessTier {
+  standard
+  premium
+}
+
 model merchants {
   id               String         @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
   name             String         @db.VarChar(255)
+  slug             String?        @unique @db.VarChar(100)
   industry         String?        @db.VarChar(100)
   cashback_percent Decimal?       @db.Decimal(5, 2)
   settings         Json?
   created_at       DateTime?      @default(now())
+
+  // Access Tier - Standard (Cashback only) or Premium (Cashback + Retail)
+  access_tier              AccessTier @default(standard)
+  has_cashback_access      Boolean    @default(true)
+  has_retail_insights      Boolean    @default(false)
 
   // White-labeling / Branding
   logo_url         String?        @db.VarChar(500)
@@ -31,12 +43,18 @@ model merchants {
   webhook_secret   String?        @db.VarChar(64)
   webhook_events   String[]       @default([])     // ["anomaly", "daily_report", "threshold_alert"]
 
-  users            users[]
-  transactions     transactions[]
-  daily_metrics    daily_metrics[]
-  audit_logs       audit_logs[]
-  api_logs         api_logs[]
-  webhook_logs     webhook_logs[]
+  users              users[]
+  transactions       transactions[]
+  daily_metrics      daily_metrics[]
+  audit_logs         audit_logs[]
+  api_logs           api_logs[]
+  webhook_logs       webhook_logs[]
+  campaigns          campaigns[]
+  stores             stores[]
+  competitor_groups  competitor_groups[]
+  anomalies          anomalies[]
+  recommendations    ai_recommendations[]
+  churn_analyses     churn_analyses[]
 }
 
 model api_logs {
@@ -102,32 +120,68 @@ model users {
 // analyst - Can view all data, create reports
 // viewer - Read-only access to dashboards
 
+// Gender enum for demographics
+enum Gender {
+  male
+  female
+  unknown
+}
+
 model transactions {
-  id               String     @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-  merchant_id      String?    @db.Uuid
-  transaction_date DateTime   @db.Date
-  amount           Decimal    @db.Decimal(10, 2)
-  customer_id      String?
-  cashback_amount  Decimal?   @db.Decimal(10, 2)
-  category         String?
-  created_at       DateTime?  @default(now())
-  merchant         merchants? @relation(fields: [merchant_id], references: [id])
+  id                     String     @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  merchant_id            String?    @db.Uuid
+  store_id               String?    @db.Uuid
+  transaction_date       DateTime   @db.Date
+  transaction_time       DateTime?
+  day_of_week            Int?       // 0=Sunday, 6=Saturday
+  amount                 Decimal    @db.Decimal(10, 2)
+  customer_id            String?
+  customer_gender        Gender?
+  customer_age           Int?
+  cashback_amount        Decimal?   @db.Decimal(10, 2)
+  is_cashback_transaction Boolean   @default(false)
+  campaign_id            String?    @db.Uuid
+  category               String?
+  created_at             DateTime?  @default(now())
+
+  merchant               merchants? @relation(fields: [merchant_id], references: [id])
+  store                  stores?    @relation(fields: [store_id], references: [id])
+  campaign               campaigns? @relation(fields: [campaign_id], references: [id])
 
   @@index([merchant_id])
   @@index([merchant_id, transaction_date])
   @@index([transaction_date])
+  @@index([customer_id])
+  @@index([store_id])
 }
 
 model daily_metrics {
-  id                 String     @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-  merchant_id        String?    @db.Uuid
-  date               DateTime   @db.Date
-  transactions_count Int?       @default(0)
-  revenue            Decimal?   @default(0) @db.Decimal(12, 2)
-  unique_customers   Int?       @default(0)
-  cashback_paid      Decimal?   @default(0) @db.Decimal(12, 2)
-  created_at         DateTime?  @default(now())
-  merchant           merchants? @relation(fields: [merchant_id], references: [id])
+  id                   String     @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  merchant_id          String?    @db.Uuid
+  date                 DateTime   @db.Date
+  transactions_count   Int?       @default(0)
+  revenue              Decimal?   @default(0) @db.Decimal(12, 2)
+  unique_customers     Int?       @default(0)
+  cashback_paid        Decimal?   @default(0) @db.Decimal(12, 2)
+  avg_receipt          Decimal?   @db.Decimal(10, 2)
+
+  // Cashback-specific metrics
+  cashback_transactions Int?      @default(0)
+  cashback_revenue      Decimal?  @default(0) @db.Decimal(12, 2)
+
+  // Demographics breakdown
+  customers_male        Int?      @default(0)
+  customers_female      Int?      @default(0)
+  customers_age_18_24   Int?      @default(0)
+  customers_age_25_34   Int?      @default(0)
+  customers_age_35_44   Int?      @default(0)
+  customers_age_45_54   Int?      @default(0)
+  customers_age_55_64   Int?      @default(0)
+  customers_age_65_plus Int?      @default(0)
+  avg_customer_age      Decimal?  @db.Decimal(5, 2)
+
+  created_at           DateTime?  @default(now())
+  merchant             merchants? @relation(fields: [merchant_id], references: [id])
 
   @@unique([merchant_id, date])
 }
@@ -219,4 +273,192 @@ model notification_settings {
   updated_at          DateTime  @updatedAt
 
   @@index([user_id])
+}
+
+// =============================================================================
+// NEW MODELS FOR CASHBACK/RETAIL INSIGHTS
+// =============================================================================
+
+// Store model for location-based analytics
+model stores {
+  id           String         @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  merchant_id  String         @db.Uuid
+  name         String         @db.VarChar(255)
+  city         String?        @db.VarChar(100)
+  address      String?        @db.VarChar(500)
+  is_active    Boolean        @default(true)
+  created_at   DateTime       @default(now())
+
+  merchant     merchants      @relation(fields: [merchant_id], references: [id], onDelete: Cascade)
+  transactions transactions[]
+
+  @@index([merchant_id])
+}
+
+// Campaign model for cashback campaigns
+model campaigns {
+  id                  String         @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  merchant_id         String         @db.Uuid
+  name                String         @db.VarChar(255)
+  start_date          DateTime       @db.Date
+  end_date            DateTime       @db.Date
+  budget              Decimal        @db.Decimal(15, 2)
+  cashback_percentage Decimal        @db.Decimal(5, 2)
+  is_active           Boolean        @default(true)
+  created_at          DateTime       @default(now())
+
+  merchant            merchants      @relation(fields: [merchant_id], references: [id], onDelete: Cascade)
+  transactions        transactions[]
+
+  @@index([merchant_id])
+  @@index([is_active])
+}
+
+// Competitor group for comparison sets
+model competitor_groups {
+  id              String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  merchant_id     String    @db.Uuid
+  name            String    @db.VarChar(255)
+  competitor_ids  String[]  @db.Uuid  // Array of merchant IDs to compare against
+  is_default      Boolean   @default(false)
+  created_at      DateTime  @default(now())
+
+  merchant        merchants @relation(fields: [merchant_id], references: [id], onDelete: Cascade)
+
+  @@unique([merchant_id, name])
+  @@index([merchant_id])
+}
+
+// Customer model for tracking individual customers
+model customers {
+  id                     String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  external_id            String    @unique @db.VarChar(255)
+  gender                 Gender?
+  birth_year             Int?
+  age                    Int?
+  first_transaction_date DateTime?
+  last_transaction_date  DateTime?
+  total_transactions     Int       @default(0)
+  total_spend            Decimal   @default(0) @db.Decimal(15, 2)
+  created_at             DateTime  @default(now())
+  updated_at             DateTime  @updatedAt
+
+  @@index([external_id])
+}
+
+// Market share snapshots for retail insights
+model market_share_snapshots {
+  id                          String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  date                        DateTime @db.Date
+  merchant_id                 String   @db.Uuid
+  total_sales                 Decimal  @db.Decimal(15, 2)
+  market_share_by_sales       Decimal  @db.Decimal(8, 4)
+  total_transactions          Int
+  market_share_by_transactions Decimal @db.Decimal(8, 4)
+  market_reach_3m             Decimal? @db.Decimal(8, 4)
+  market_reach_6m             Decimal? @db.Decimal(8, 4)
+  share_of_wallet             Decimal? @db.Decimal(8, 4)
+  created_at                  DateTime @default(now())
+
+  @@unique([date, merchant_id])
+  @@index([merchant_id])
+  @@index([date])
+}
+
+// Customer mobility matrix snapshots
+model customer_mobility_snapshots {
+  id                 String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  period_start       DateTime @db.Date
+  period_end         DateTime @db.Date
+  from_merchant_id   String   @db.Uuid
+  to_merchant_id     String   @db.Uuid
+  overlap_customers  Int
+  overlap_percentage Decimal  @db.Decimal(8, 4)
+  created_at         DateTime @default(now())
+
+  @@unique([period_start, period_end, from_merchant_id, to_merchant_id])
+  @@index([from_merchant_id])
+  @@index([to_merchant_id])
+}
+
+// Churn analysis snapshots
+model churn_analyses {
+  id                   String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  merchant_id          String    @db.Uuid
+  period_start         DateTime  @db.Date
+  period_end           DateTime  @db.Date
+  total_customers      Int
+  new_customers        Int
+  retained_customers   Int
+  churned_customers    Int
+  churn_destinations   Json?     // Where churned customers went
+  new_customer_sources Json?     // Where new customers came from
+  created_at           DateTime  @default(now())
+
+  merchant             merchants @relation(fields: [merchant_id], references: [id], onDelete: Cascade)
+
+  @@unique([merchant_id, period_start, period_end])
+  @@index([merchant_id])
+}
+
+// AI-detected anomalies
+model anomalies {
+  id                    String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  merchant_id           String    @db.Uuid
+  type                  String    @db.VarChar(50)   // 'spike', 'drop', 'trend_change'
+  severity              String    @db.VarChar(20)   // 'low', 'medium', 'high', 'critical'
+  title                 String    @db.VarChar(255)
+  description           String    @db.Text
+  metric                String    @db.VarChar(100)
+  expected_value        Decimal   @db.Decimal(15, 2)
+  actual_value          Decimal   @db.Decimal(15, 2)
+  percentage_change     Decimal   @db.Decimal(8, 2)
+  affected_period_start DateTime  @db.Date
+  affected_period_end   DateTime  @db.Date
+  context_mode          String    @default("cashback") @db.VarChar(20)  // 'cashback' or 'retail'
+  is_read               Boolean   @default(false)
+  is_dismissed          Boolean   @default(false)
+  detected_at           DateTime  @default(now())
+
+  merchant              merchants @relation(fields: [merchant_id], references: [id], onDelete: Cascade)
+
+  @@index([merchant_id])
+  @@index([detected_at])
+  @@index([is_dismissed])
+}
+
+// AI recommendations
+model ai_recommendations {
+  id                String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  merchant_id       String    @db.Uuid
+  type              String    @db.VarChar(50)   // 'campaign', 'retention', 'growth'
+  priority          String    @db.VarChar(20)   // 'low', 'medium', 'high'
+  title             String    @db.VarChar(255)
+  description       String    @db.Text
+  rationale         String    @db.Text
+  suggested_actions String[]
+  context_mode      String    @default("cashback") @db.VarChar(20)  // 'cashback' or 'retail'
+  is_read           Boolean   @default(false)
+  is_dismissed      Boolean   @default(false)
+  created_at        DateTime  @default(now())
+
+  merchant          merchants @relation(fields: [merchant_id], references: [id], onDelete: Cascade)
+
+  @@index([merchant_id])
+  @@index([created_at])
+}
+
+// AI chat message history
+model ai_chat_messages {
+  id           String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  merchant_id  String   @db.Uuid
+  user_id      String?  @db.Uuid
+  session_id   String   @db.VarChar(100)
+  role         String   @db.VarChar(20)   // 'user', 'assistant'
+  content      String   @db.Text
+  context_mode String   @db.VarChar(20)   // 'cashback' or 'retail'
+  timestamp    DateTime @default(now())
+
+  @@index([merchant_id, session_id])
+  @@index([timestamp])
 }

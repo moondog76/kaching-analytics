@@ -2,12 +2,20 @@ import { NextRequest, NextResponse } from 'next/server'
 import { AIAgent } from '@/lib/ai-agent'
 import { DataLoader } from '@/lib/data-loader'
 import { ConversationMessage, MerchantMetrics } from '@/lib/types'
+import { AIContextMode } from '@/types/analytics'
+import { buildAISystemPrompt } from '@/lib/ai-prompts'
 
 // NO EDGE RUNTIME - Use Node.js runtime for environment variables
 
 export async function POST(request: NextRequest) {
   try {
-    const { query, conversationHistory = [] } = await request.json()
+    const {
+      query,
+      conversationHistory = [],
+      contextMode = 'cashback' as AIContextMode,
+      merchantName = 'Carrefour',
+      merchantId = 'carrefour'
+    } = await request.json()
     
     if (!query) {
       return NextResponse.json(
@@ -68,14 +76,23 @@ export async function POST(request: NextRequest) {
       // Create AI agent
       const agent = new AIAgent(apiKey)
       
+      // Build AI system prompt based on context mode
+      const systemPrompt = buildAISystemPrompt({
+        mode: contextMode,
+        merchantName,
+        merchantId
+      })
+
       // Build conversation context
       const context = {
         conversation_id: 'demo-conversation',
-        merchant_id: 'carrefour',
+        merchant_id: merchantId,
         messages: conversationHistory as ConversationMessage[],
         active_filters: [],
         computed_metrics: {},
-        visualizations: []
+        visualizations: [],
+        contextMode,
+        systemPrompt
       }
       
       // Process query with AI

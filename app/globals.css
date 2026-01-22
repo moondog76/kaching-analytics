@@ -4,6 +4,75 @@
 @tailwind components;
 @tailwind utilities;
 
+/* =============================================================================
+   PLUXEE BRAND THEME - KaChing Analytics Pro
+   ============================================================================= */
+
+:root {
+  /* PRIMARY COLORS */
+  --pluxee-deep-blue: #221C46;
+  --pluxee-ultra-green: #00EB5E;
+  --pluxee-boldly-blue: #17CCF9;
+  --pluxee-very-yellow: #FFDC37;
+  --pluxee-coral: #FF7375;
+  --pluxee-white: #FFFFFF;
+
+  /* TINTS - 50% */
+  --pluxee-deep-blue-50: rgba(34, 28, 70, 0.5);
+  --pluxee-ultra-green-50: rgba(0, 235, 94, 0.5);
+  --pluxee-boldly-blue-50: rgba(23, 204, 249, 0.5);
+  --pluxee-very-yellow-50: rgba(255, 220, 55, 0.5);
+  --pluxee-coral-50: rgba(255, 115, 117, 0.5);
+
+  /* TINTS - 20% */
+  --pluxee-deep-blue-20: rgba(34, 28, 70, 0.2);
+  --pluxee-ultra-green-20: rgba(0, 235, 94, 0.2);
+  --pluxee-boldly-blue-20: rgba(23, 204, 249, 0.2);
+  --pluxee-very-yellow-20: rgba(255, 220, 55, 0.2);
+  --pluxee-coral-20: rgba(255, 115, 117, 0.2);
+
+  /* TINTS - 5% */
+  --pluxee-deep-blue-05: rgba(34, 28, 70, 0.05);
+  --pluxee-ultra-green-05: rgba(0, 235, 94, 0.05);
+  --pluxee-boldly-blue-05: rgba(23, 204, 249, 0.05);
+
+  /* SEMANTIC COLORS */
+  --color-bg-primary: var(--pluxee-white);
+  --color-bg-secondary: var(--pluxee-deep-blue-05);
+  --color-bg-card: var(--pluxee-white);
+  --color-text-primary: var(--pluxee-deep-blue);
+  --color-text-secondary: var(--pluxee-deep-blue-50);
+  --color-text-muted: var(--pluxee-deep-blue-20);
+  --color-border-primary: var(--pluxee-deep-blue-20);
+  --color-border-secondary: var(--pluxee-deep-blue-05);
+  --color-success: var(--pluxee-ultra-green);
+  --color-warning: var(--pluxee-very-yellow);
+  --color-error: var(--pluxee-coral);
+  --color-info: var(--pluxee-boldly-blue);
+
+  /* BUTTONS */
+  --color-btn-primary-bg: var(--pluxee-ultra-green);
+  --color-btn-primary-text: var(--pluxee-deep-blue);
+  --color-btn-primary-hover: #00D654;
+  --color-btn-secondary-bg: var(--pluxee-white);
+  --color-btn-secondary-text: var(--pluxee-deep-blue);
+  --color-btn-secondary-border: var(--pluxee-deep-blue);
+
+  /* CHART COLORS */
+  --chart-color-1: var(--pluxee-ultra-green);
+  --chart-color-2: var(--pluxee-boldly-blue);
+  --chart-color-3: var(--pluxee-very-yellow);
+  --chart-color-4: var(--pluxee-coral);
+  --chart-color-5: var(--pluxee-deep-blue);
+  --chart-color-6: #8B5CF6;
+  --chart-color-7: #EC4899;
+  --chart-color-8: #14B8A6;
+
+  /* SHADOWS */
+  --shadow-card: 0 2px 8px rgba(34, 28, 70, 0.08);
+  --shadow-card-hover: 0 4px 16px rgba(34, 28, 70, 0.12);
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -11,7 +80,8 @@
 }
 
 body {
-  @apply bg-slate-50 text-slate-800 antialiased;
+  @apply bg-slate-50 antialiased;
+  color: var(--pluxee-deep-blue);
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
@@ -39,10 +109,203 @@ body {
 
 /* Focus styles */
 *:focus-visible {
-  @apply outline-none ring-2 ring-blue-500 ring-offset-2;
+  @apply outline-none ring-2 ring-offset-2;
+  ring-color: var(--pluxee-ultra-green);
 }
 
+/* =============================================================================
+   PLUXEE COMPONENT CLASSES
+   ============================================================================= */
+
+@layer components {
+  /* Cards */
+  .pluxee-card {
+    background: var(--color-bg-card);
+    border-radius: 0.75rem;
+    box-shadow: var(--shadow-card);
+    border: 1px solid var(--color-border-secondary);
+    padding: 1.5rem;
+  }
+
+  .pluxee-card:hover {
+    box-shadow: var(--shadow-card-hover);
+  }
+
+  /* Buttons */
+  .pluxee-btn-primary {
+    background: var(--color-btn-primary-bg);
+    color: var(--color-btn-primary-text);
+    padding: 0.75rem 1.25rem;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    border: none;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .pluxee-btn-primary:hover {
+    background: var(--color-btn-primary-hover);
+  }
+
+  .pluxee-btn-secondary {
+    background: var(--color-btn-secondary-bg);
+    color: var(--color-btn-secondary-text);
+    padding: 0.75rem 1.25rem;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    border: 1px solid var(--color-btn-secondary-border);
+    cursor: pointer;
+  }
+
+  .pluxee-btn-secondary:hover {
+    background: var(--pluxee-deep-blue-05);
+  }
+
+  /* Tabs */
+  .pluxee-tabs {
+    display: flex;
+    gap: 0.25rem;
+    background: var(--color-bg-secondary);
+    padding: 0.25rem;
+    border-radius: 0.75rem;
+  }
+
+  .pluxee-tab {
+    padding: 0.75rem 1.25rem;
+    border-radius: 0.5rem;
+    background: transparent;
+    color: var(--color-text-secondary);
+    border: none;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s;
+  }
+
+  .pluxee-tab:hover:not(.pluxee-tab--active) {
+    color: var(--color-text-primary);
+    background: rgba(255, 255, 255, 0.5);
+  }
+
+  .pluxee-tab--active {
+    background: var(--color-bg-card);
+    color: var(--color-text-primary);
+    box-shadow: var(--shadow-card);
+  }
+
+  /* Badges */
+  .pluxee-badge {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 9999px;
+    font-weight: 500;
+  }
+
+  .pluxee-badge--premium {
+    background: var(--pluxee-ultra-green);
+    color: var(--pluxee-deep-blue);
+  }
+
+  .pluxee-badge--standard {
+    background: var(--pluxee-deep-blue-05);
+    color: var(--pluxee-deep-blue);
+  }
+
+  /* KPI Card */
+  .pluxee-kpi {
+    @apply pluxee-card;
+  }
+
+  .pluxee-kpi-value {
+    font-size: 2.25rem;
+    font-weight: 700;
+    line-height: 1;
+    color: var(--pluxee-deep-blue);
+  }
+
+  .pluxee-kpi-label {
+    font-size: 0.875rem;
+    color: var(--color-text-secondary);
+    margin-top: 0.5rem;
+  }
+
+  .pluxee-kpi-trend {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    margin-top: 0.5rem;
+  }
+
+  .pluxee-kpi-trend--positive {
+    color: var(--pluxee-ultra-green);
+  }
+
+  .pluxee-kpi-trend--negative {
+    color: var(--pluxee-coral);
+  }
+
+  /* Section Headers */
+  .pluxee-section-header {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--pluxee-deep-blue);
+    margin-bottom: 1rem;
+  }
+
+  .pluxee-section-subheader {
+    font-size: 0.875rem;
+    color: var(--color-text-secondary);
+    margin-top: -0.5rem;
+    margin-bottom: 1rem;
+  }
+
+  /* GDPR Protected Data */
+  .pluxee-gdpr-protected {
+    @apply pluxee-card;
+    background: var(--pluxee-deep-blue-05);
+    border-style: dashed;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 200px;
+    color: var(--color-text-secondary);
+    text-align: center;
+  }
+}
+
+/* =============================================================================
+   UTILITY CLASSES
+   ============================================================================= */
+
 @layer utilities {
+  /* Pluxee Colors */
+  .text-pluxee-deep-blue { color: var(--pluxee-deep-blue); }
+  .text-pluxee-ultra-green { color: var(--pluxee-ultra-green); }
+  .text-pluxee-boldly-blue { color: var(--pluxee-boldly-blue); }
+  .text-pluxee-coral { color: var(--pluxee-coral); }
+  .text-pluxee-yellow { color: var(--pluxee-very-yellow); }
+
+  .bg-pluxee-deep-blue { background-color: var(--pluxee-deep-blue); }
+  .bg-pluxee-ultra-green { background-color: var(--pluxee-ultra-green); }
+  .bg-pluxee-boldly-blue { background-color: var(--pluxee-boldly-blue); }
+  .bg-pluxee-coral { background-color: var(--pluxee-coral); }
+  .bg-pluxee-yellow { background-color: var(--pluxee-very-yellow); }
+
+  .border-pluxee-deep-blue { border-color: var(--pluxee-deep-blue); }
+  .border-pluxee-ultra-green { border-color: var(--pluxee-ultra-green); }
+
+  /* Semantic */
+  .text-positive { color: var(--color-success); }
+  .text-negative { color: var(--color-error); }
+  .text-warning { color: var(--color-warning); }
+  .text-info { color: var(--color-info); }
+
+  .bg-positive { background-color: var(--pluxee-ultra-green-05); }
+  .bg-negative { background-color: var(--pluxee-coral-20); }
+
+  /* Animations */
   .animate-fade-in {
     animation: fadeIn 0.3s ease-out;
   }
@@ -51,13 +314,13 @@ body {
     animation: fadeInUp 0.6s ease-out;
   }
 
+  .animate-pulse-subtle {
+    animation: pulseSutble 2s ease-in-out infinite;
+  }
+
   @keyframes fadeIn {
-    from {
-      opacity: 0;
-    }
-    to {
-      opacity: 1;
-    }
+    from { opacity: 0; }
+    to { opacity: 1; }
   }
 
   @keyframes fadeInUp {
@@ -69,5 +332,10 @@ body {
       opacity: 1;
       transform: translateY(0);
     }
+  }
+
+  @keyframes pulseSutble {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
   }
 }

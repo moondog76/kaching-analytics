@@ -1,0 +1,439 @@
+# Admin Feature: AI Conversation Analytics
+
+## Overview
+
+Create a new admin-only section that provides visibility into all AI Analyst conversations across all merchants, with AI-powered meta-analysis to surface product improvement insights.
+
+---
+
+## User Story
+
+As a **product owner/admin**, I want to:
+1. See all AI Analyst conversations from all merchants
+2. Get AI-generated insights about what users are asking
+3. Identify product gaps, feature requests, and pain points
+4. Understand how users interact with the AI Analyst
+5. Track conversation quality and AI performance
+
+---
+
+## Feature Location
+
+**URL**: `/admin/ai-conversations`
+
+**Access**: Admin users only (add to existing admin interface)
+
+**Navigation**: Add "AI Conversations" to admin sidebar/menu
+
+---
+
+## Page Structure
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ Admin > AI Conversation Analytics                                           │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │ AI INSIGHTS SUMMARY                                      [Refresh]   │   │
+│  │                                                                      │   │
+│  │ 📊 This Week's Analysis (powered by AI)                             │   │
+│  │                                                                      │   │
+│  │ **Top Topics Users Are Asking About:**                              │   │
+│  │ 1. Market share comparisons (34 conversations)                      │   │
+│  │ 2. Churn analysis and customer loss (28 conversations)              │   │
+│  │ 3. Campaign ROI optimization (22 conversations)                     │   │
+│  │                                                                      │   │
+│  │ **Identified Pain Points:**                                         │   │
+│  │ • 12 users asked about features we don't have (export to Excel)     │   │
+│  │ • 8 users seemed confused about the Cashback vs Retail difference   │   │
+│  │ • 5 users asked for data we don't currently track (hourly trends)   │   │
+│  │                                                                      │   │
+│  │ **Feature Requests Detected:**                                      │   │
+│  │ • "Can I compare more than 5 competitors?" (6 mentions)             │   │
+│  │ • "Email me weekly reports" (4 mentions)                            │   │
+│  │ • "Show me predictions/forecasts" (4 mentions)                      │   │
+│  │                                                                      │   │
+│  │ **AI Performance Notes:**                                           │   │
+│  │ • 94% of conversations resolved without escalation                  │   │
+│  │ • 6 conversations where AI couldn't help (see flagged below)        │   │
+│  │                                                                      │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+│                                                                             │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │ CONVERSATION LOG                                                     │   │
+│  │                                                                      │   │
+│  │ [Filter: All Merchants ▼] [Date Range ▼] [Context: All ▼] [Search]  │   │
+│  │                                                                      │   │
+│  │ ┌─────────────────────────────────────────────────────────────────┐ │   │
+│  │ │ 🏪 Mega Image • Retail Insights • 2 hours ago • 8 messages      │ │   │
+│  │ │ User asked about market share vs Kaufland...                    │ │   │
+│  │ │ [View Full Conversation]                         [Flag] [Star]  │ │   │
+│  │ └─────────────────────────────────────────────────────────────────┘ │   │
+│  │ ┌─────────────────────────────────────────────────────────────────┐ │   │
+│  │ │ 🏪 Carrefour • Cashback Insights • 5 hours ago • 4 messages     │ │   │
+│  │ │ User asked why campaign performance dropped...                  │ │   │
+│  │ │ [View Full Conversation]                         [Flag] [Star]  │ │   │
+│  │ └─────────────────────────────────────────────────────────────────┘ │   │
+│  │                                                                      │   │
+│  │ [Load More...]                                                       │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## Components
+
+### 1. AI Insights Summary Panel
+
+**Purpose**: AI-generated analysis of conversation patterns
+
+**Data Source**: Runs Claude analysis on aggregated conversation data
+
+**Refresh**: Manual refresh button + auto-refresh daily
+
+**Sections**:
+
+| Section | Description |
+|---------|-------------|
+| Top Topics | Most common themes/questions users ask |
+| Pain Points | Where users struggled or expressed frustration |
+| Feature Requests | Features users asked for that don't exist |
+| Confusion Points | Where users misunderstood the product |
+| AI Performance | Success rate, failed conversations, escalations |
+| Trends | Week-over-week changes in conversation patterns |
+
+### 2. Conversation Log
+
+**Purpose**: Browsable list of all AI conversations
+
+**Features**:
+- Filterable by merchant, date range, context (cashback/retail)
+- Searchable by keyword
+- Expandable to view full conversation
+- Flag conversations for follow-up
+- Star important conversations
+- Export conversations (CSV)
+
+### 3. Conversation Detail Modal
+
+**When**: User clicks "View Full Conversation"
+
+**Shows**:
+- Full message history (user + AI)
+- Merchant name and user info
+- Timestamp and duration
+- Context mode (Cashback/Retail)
+- AI-generated summary of the conversation
+- Tags/categories (auto-detected)
+
+---
+
+## Database Schema
+
+### New Table: `admin_conversation_insights`
+
+```sql
+CREATE TABLE admin_conversation_insights (
+  id              VARCHAR PRIMARY KEY,
+  
+  -- Analysis period
+  period_start    TIMESTAMP NOT NULL,
+  period_end      TIMESTAMP NOT NULL,
+  
+  -- AI-generated insights (stored as JSON)
+  top_topics      JSONB,        -- [{topic, count, example_ids}]
+  pain_points     JSONB,        -- [{issue, count, severity, example_ids}]
+  feature_requests JSONB,       -- [{request, count, example_ids}]
+  confusion_points JSONB,       -- [{area, count, example_ids}]
+  
+  -- Metrics
+  total_conversations    INT,
+  avg_messages_per_conv  DECIMAL,
+  resolution_rate        DECIMAL,  -- % resolved without issues
+  
+  -- Raw AI analysis
+  full_analysis_text     TEXT,
+  
+  created_at      TIMESTAMP DEFAULT NOW()
+);
+```
+
+### Updates to Existing: `ai_chat_messages`
+
+Add fields if not present:
+
+```sql
+ALTER TABLE ai_chat_messages ADD COLUMN IF NOT EXISTS user_id VARCHAR;
+ALTER TABLE ai_chat_messages ADD COLUMN IF NOT EXISTS user_email VARCHAR;
+ALTER TABLE ai_chat_messages ADD COLUMN IF NOT EXISTS flagged BOOLEAN DEFAULT FALSE;
+ALTER TABLE ai_chat_messages ADD COLUMN IF NOT EXISTS starred BOOLEAN DEFAULT FALSE;
+ALTER TABLE ai_chat_messages ADD COLUMN IF NOT EXISTS tags VARCHAR[];
+```
+
+---
+
+## API Endpoints
+
+### GET `/api/admin/ai-conversations`
+
+**Purpose**: Fetch paginated conversation list
+
+**Query Params**:
+- `merchantId` (optional) - filter by merchant
+- `contextMode` (optional) - 'cashback' | 'retail'
+- `startDate`, `endDate` (optional) - date range
+- `search` (optional) - keyword search
+- `flagged` (optional) - show only flagged
+- `page`, `limit` - pagination
+
+**Response**:
+```json
+{
+  "conversations": [
+    {
+      "sessionId": "abc123",
+      "merchantId": "mega-image",
+      "merchantName": "Mega Image",
+      "contextMode": "retail",
+      "messageCount": 8,
+      "firstMessage": "How am I doing vs Kaufland?",
+      "startedAt": "2025-01-22T09:30:00Z",
+      "lastMessageAt": "2025-01-22T09:45:00Z",
+      "userId": "user123",
+      "userEmail": "ana@megaimage.ro",
+      "flagged": false,
+      "starred": false,
+      "tags": ["competitor-analysis", "market-share"]
+    }
+  ],
+  "total": 234,
+  "page": 1,
+  "limit": 20
+}
+```
+
+### GET `/api/admin/ai-conversations/[sessionId]`
+
+**Purpose**: Fetch full conversation detail
+
+**Response**:
+```json
+{
+  "sessionId": "abc123",
+  "merchantId": "mega-image",
+  "merchantName": "Mega Image",
+  "contextMode": "retail",
+  "userId": "user123",
+  "userEmail": "ana@megaimage.ro",
+  "messages": [
+    { "role": "user", "content": "How am I doing vs Kaufland?", "timestamp": "..." },
+    { "role": "assistant", "content": "Based on market data...", "timestamp": "..." }
+  ],
+  "summary": "User inquired about competitive position against Kaufland...",
+  "tags": ["competitor-analysis", "market-share"],
+  "flagged": false,
+  "starred": false
+}
+```
+
+### POST `/api/admin/ai-conversations/[sessionId]/flag`
+
+**Purpose**: Flag a conversation for follow-up
+
+### POST `/api/admin/ai-conversations/[sessionId]/star`
+
+**Purpose**: Star an important conversation
+
+### GET `/api/admin/ai-insights`
+
+**Purpose**: Get AI-generated insights summary
+
+**Query Params**:
+- `period` - 'day' | 'week' | 'month'
+
+**Response**:
+```json
+{
+  "period": { "start": "2025-01-15", "end": "2025-01-22" },
+  "totalConversations": 156,
+  "topTopics": [
+    { "topic": "Market share comparisons", "count": 34, "percentage": 21.8 },
+    { "topic": "Churn analysis", "count": 28, "percentage": 17.9 }
+  ],
+  "painPoints": [
+    { "issue": "Users asking for Excel export", "count": 12, "severity": "medium" },
+    { "issue": "Confusion about Cashback vs Retail tabs", "count": 8, "severity": "high" }
+  ],
+  "featureRequests": [
+    { "request": "Compare more than 5 competitors", "count": 6 },
+    { "request": "Email weekly reports", "count": 4 }
+  ],
+  "aiPerformance": {
+    "resolutionRate": 94.2,
+    "avgMessagesPerConversation": 5.3,
+    "failedConversations": 6
+  },
+  "generatedAt": "2025-01-22T10:00:00Z"
+}
+```
+
+### POST `/api/admin/ai-insights/generate`
+
+**Purpose**: Trigger regeneration of AI insights
+
+**Process**:
+1. Fetch all conversations from period
+2. Send to Claude for analysis
+3. Store results in `admin_conversation_insights`
+4. Return new insights
+
+---
+
+## AI Insights Generation
+
+### System Prompt for Meta-Analysis
+
+```
+You are analyzing AI Analyst conversations from KaChing Analytics Pro to help the product team improve the platform.
+
+You will receive a batch of conversations between merchants and the AI Analyst.
+
+Analyze these conversations and provide:
+
+1. **TOP TOPICS** (most common themes users ask about)
+   - List the top 5-10 topics
+   - Include count and representative examples
+   
+2. **PAIN POINTS** (where users struggled or expressed frustration)
+   - What features were missing?
+   - What was confusing?
+   - What didn't work as expected?
+   
+3. **FEATURE REQUESTS** (explicit or implicit requests for new features)
+   - Exact quotes when possible
+   - Frequency of similar requests
+   
+4. **CONFUSION POINTS** (where users misunderstood the product)
+   - Common misconceptions
+   - UI/UX issues suggested by questions
+   
+5. **AI PERFORMANCE ISSUES** (where the AI Analyst failed to help)
+   - Questions it couldn't answer
+   - Incorrect or unhelpful responses
+   - Times it should have escalated
+
+6. **ACTIONABLE RECOMMENDATIONS** for the product team
+   - Prioritized list of improvements
+   - Quick wins vs larger projects
+
+Be specific and include conversation IDs for examples where relevant.
+```
+
+### Batch Processing
+
+For large conversation volumes:
+1. Group conversations by week
+2. Process in batches of 50-100 conversations
+3. Aggregate insights across batches
+4. Store both raw analysis and structured data
+
+---
+
+## UI Components Needed
+
+### 1. AdminAIInsightsPanel
+- Displays AI-generated summary
+- Refresh button
+- Collapsible sections
+- Links to relevant conversations
+
+### 2. ConversationList
+- Paginated list of conversations
+- Filter bar
+- Search input
+- List items with preview
+
+### 3. ConversationDetailModal
+- Full message thread display
+- Chat-style bubbles
+- Metadata sidebar
+- Action buttons (flag, star, tag)
+
+### 4. FilterBar
+- Merchant dropdown
+- Date range picker
+- Context mode toggle
+- Search input
+
+---
+
+## Implementation Steps
+
+### Phase 1: Data Foundation
+1. Update `ai_chat_messages` schema with new fields
+2. Create `admin_conversation_insights` table
+3. Ensure all AI conversations are being logged with required fields
+
+### Phase 2: Conversation Log
+1. Create `/admin/ai-conversations` page
+2. Build ConversationList component
+3. Build ConversationDetailModal
+4. Implement API endpoints for fetching conversations
+5. Add flag/star functionality
+
+### Phase 3: AI Insights
+1. Create AI meta-analysis prompt
+2. Build insights generation API endpoint
+3. Build AdminAIInsightsPanel component
+4. Add scheduled job for daily insights generation
+
+### Phase 4: Polish
+1. Add export functionality (CSV)
+2. Add conversation tagging
+3. Add search highlighting
+4. Performance optimization for large datasets
+
+---
+
+## Access Control
+
+- **Admin only**: Entire feature restricted to admin role
+- **Audit log**: Track admin access to conversations (for privacy compliance)
+- **Data retention**: Consider policy for how long to keep conversation data
+
+---
+
+## Suggested Claude Code Prompt
+
+```
+I need to build a new admin feature for AI Conversation Analytics.
+
+This feature should:
+1. Show a log of ALL AI Analyst conversations across all merchants
+2. Include an AI-generated insights panel that analyzes conversation patterns
+3. Help us identify feature requests, pain points, and product improvement opportunities
+
+First, show me:
+- The existing admin pages/routes structure
+- The current ai_chat_messages table schema
+- How authentication/admin access is currently handled
+
+Then let's start with the database schema updates and API endpoints.
+```
+
+---
+
+## Success Metrics
+
+After implementation, we should be able to:
+- [ ] View all AI conversations across merchants
+- [ ] Filter by merchant, date, context mode
+- [ ] Search conversations by keyword
+- [ ] See AI-generated insights summary
+- [ ] Identify top topics users ask about
+- [ ] Spot feature requests and pain points
+- [ ] Flag/star important conversations
+- [ ] Export conversation data

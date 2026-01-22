@@ -127,11 +127,9 @@ function AnalyticsContent() {
         <header className="border-b border-slate-200 bg-white sticky top-0 z-40">
           <div className="max-w-7xl mx-auto px-8 py-5 flex justify-between items-center">
             <div className="flex items-center gap-6">
-              <Link href="/" className="flex items-center gap-4 hover:opacity-80 transition-opacity">
-                <div className="text-xl font-semibold text-pluxee-deep-blue">
-                  {data?.carrefour?.merchant_name || "Analytics"}
-                </div>
-              </Link>
+              <div className="text-xl font-semibold text-pluxee-deep-blue">
+                {data?.carrefour?.merchant_name || "Analytics"}
+              </div>
               <DateRangePicker value={dateRange} onChange={setDateRange} />
               <ExportButton dateRange={dateRange} merchantId={data?.carrefour?.merchant_id} />
 
@@ -203,6 +201,22 @@ function AnalyticsContent() {
                   <span className="pluxee-badge pluxee-badge--premium text-xs">Pro</span>
                 )}
               </div>
+
+              {/* Settings & Admin */}
+              <Link
+                href="/settings"
+                className="px-3 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-all"
+              >
+                Settings
+              </Link>
+              {(session?.user as any)?.role === 'super_admin' || (session?.user as any)?.role === 'admin' ? (
+                <Link
+                  href="/admin"
+                  className="px-3 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-all"
+                >
+                  Admin
+                </Link>
+              ) : null}
 
               {/* Logout button */}
               <button

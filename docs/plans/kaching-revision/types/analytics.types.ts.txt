@@ -1,0 +1,256 @@
+// =============================================================================
+// KACHING ANALYTICS PRO - TYPE DEFINITIONS
+// =============================================================================
+
+// ENUMS
+export enum Gender { MALE = 'male', FEMALE = 'female', UNKNOWN = 'unknown' }
+export enum AccessTier { STANDARD = 'standard', PREMIUM = 'premium' }
+export enum ChurnStatus { NEW = 'new', RETAINED = 'retained', CHURNED = 'churned' }
+export type AIContextMode = 'cashback' | 'retail';
+export type ExportFormat = 'pdf' | 'jpeg' | 'pptx' | 'csv' | 'xlsx';
+
+// BASE ENTITIES
+export interface Merchant {
+  id: string;
+  name: string;
+  logoUrl?: string;
+  accessTier: AccessTier;
+  hasCashbackAccess: boolean;
+  hasRetailInsightsAccess: boolean;
+}
+
+export interface Transaction {
+  id: string;
+  merchantId: string;
+  storeId?: string;
+  customerId?: string;
+  transactionDate: Date;
+  transactionTime?: Date;
+  dayOfWeek: number;
+  amount: number;
+  currency: string;
+  customerGender?: Gender;
+  customerAge?: number;
+  isCashbackTransaction: boolean;
+  cashbackAmount?: number;
+  campaignId?: string;
+}
+
+export interface Campaign {
+  id: string;
+  merchantId: string;
+  name: string;
+  startDate: Date;
+  endDate: Date;
+  budget: number;
+  cashbackPercentage: number;
+  isActive: boolean;
+}
+
+export interface CompetitorGroup {
+  id: string;
+  merchantId: string;
+  name: string;
+  competitorIds: string[];
+  isDefault: boolean;
+}
+
+// CASHBACK INSIGHTS TYPES
+export interface CashbackHeroKPIs {
+  campaignBudget: number;
+  campaignRevenue: number;
+  roi: number;
+  cac: number;
+  totalCampaignCustomers: number;
+  repeatCustomers: number;
+  newCustomers: number;
+  repeatRate: number;
+  roiTrend: number;
+  revenueTrend: number;
+  customersTrend: number;
+}
+
+export interface CashbackReceiptComparison {
+  domesticAvgReceipt: number;
+  campaignAvgReceipt: number;
+  upliftPercentage: number;
+}
+
+export interface OwnCustomerProfile {
+  totalCustomers: number;
+  genderDistribution: { male: number; female: number; unknown: number };
+  ageDistribution: AgeDistributionBucket[];
+  avgAge: number;
+  topSpendersCount: number;
+  avgSpendPerTopSpender: number;
+}
+
+// RETAIL INSIGHTS TYPES
+export interface AgeDistributionBucket {
+  ageMin: number;
+  ageMax: number;
+  label: string;
+  count: number;
+  percentage: number;
+}
+
+export interface MarketShareData {
+  date: Date;
+  merchantId: string;
+  merchantName: string;
+  totalSales: number;
+  marketShareBySales: number;
+  totalTransactions: number;
+  marketShareByTransactions: number;
+  marketReach3m: number;
+  marketReach6m: number;
+}
+
+export interface ReceiptDistributionByMerchant {
+  merchantId: string;
+  merchantName: string;
+  avgReceipt: number;
+  medianReceipt: number;
+  distribution: { minValue: number; maxValue: number; percentage: number }[];
+}
+
+export interface ReturnIntervalByMerchant {
+  merchantId: string;
+  merchantName: string;
+  avgDays: number;
+  medianDays: number;
+  distribution: { minDays: number; maxDays: number; percentage: number }[];
+}
+
+export interface MobilityMatrixCell {
+  fromMerchantId: string;
+  toMerchantId: string;
+  overlapPercentage: number;
+  customerCount: number;
+}
+
+export interface MobilityMatrix {
+  merchants: { id: string; name: string }[];
+  cells: MobilityMatrixCell[];
+  singleMerchantLoyalty: { merchantId: string; percentage: number }[];
+}
+
+export interface ChurnSummary {
+  merchantId: string;
+  periodStart: Date;
+  periodEnd: Date;
+  totalCustomers: number;
+  newCustomers: number;
+  newCustomersPercentage: number;
+  retainedCustomers: number;
+  retainedCustomersPercentage: number;
+  churnedCustomers: number;
+  churnedCustomersPercentage: number;
+}
+
+export interface ChurnDestination {
+  competitorId: string;
+  competitorName: string;
+  customerCount: number;
+  sowPreviousPeriod: number;
+  sowCurrentPeriod: number;
+  sowDifference: number;
+}
+
+export interface ChurnAnalysis {
+  summary: ChurnSummary;
+  churnDestinations: ChurnDestination[];
+  newCustomerSources: ChurnDestination[];
+}
+
+// AI TYPES
+export interface Anomaly {
+  id: string;
+  type: string;
+  severity: 'low' | 'medium' | 'high';
+  title: string;
+  description: string;
+  metric: string;
+  expectedValue: number;
+  actualValue: number;
+  percentageChange: number;
+  detectedAt: Date;
+}
+
+export interface Recommendation {
+  id: string;
+  type: string;
+  priority: 'low' | 'medium' | 'high';
+  title: string;
+  description: string;
+  rationale: string;
+  suggestedActions: string[];
+}
+
+export interface AIChatMessage {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  timestamp: Date;
+  contextMode: AIContextMode;
+}
+
+// FILTER TYPES
+export interface FilterState {
+  dateRange: { start: Date; end: Date };
+  gender: Gender | 'all';
+  ageRange: { min: number; max: number } | null;
+  ticketSizeRange: { min: number; max: number } | null;
+  daysOfWeek: number[] | 'all';
+  timeOfDay: { start: string; end: string } | null;
+  selectedCompetitors?: string[];
+  comparisonGroupId?: string;
+}
+
+export const DEFAULT_FILTER_STATE: FilterState = {
+  dateRange: {
+    start: new Date(Date.now() - 2 * 365 * 24 * 60 * 60 * 1000),
+    end: new Date()
+  },
+  gender: 'all',
+  ageRange: null,
+  ticketSizeRange: null,
+  daysOfWeek: 'all',
+  timeOfDay: null,
+};
+
+// GDPR HELPER
+export const GDPR_MIN_USERS = 15;
+
+export interface GDPRProtectedData<T> {
+  data: T | null;
+  isProtected: boolean;
+  userCount: number;
+  message?: string;
+}
+
+export function applyGDPRProtection<T>(data: T, userCount: number): GDPRProtectedData<T> {
+  if (userCount < GDPR_MIN_USERS) {
+    return { data: null, isProtected: true, userCount, message: `Minimum ${GDPR_MIN_USERS} users required` };
+  }
+  return { data, isProtected: false, userCount };
+}
+
+// CHART DATA TYPES
+export interface TimeSeriesDataPoint { date: string; [key: string]: number | string; }
+export interface BarChartDataPoint { name: string; value: number; [key: string]: number | string; }
+export interface PieChartDataPoint { name: string; value: number; color?: string; }
+
+// COMPONENT PROPS
+export interface KPICardProps {
+  label: string;
+  value: string | number;
+  trend?: { value: number; isPositive: boolean };
+  format?: 'number' | 'currency' | 'percentage' | 'multiplier';
+}
+
+export interface TabNavigationProps {
+  activeTab: 'cashback' | 'retail';
+  onTabChange: (tab: 'cashback' | 'retail') => void;
+  hasRetailAccess: boolean;
+}

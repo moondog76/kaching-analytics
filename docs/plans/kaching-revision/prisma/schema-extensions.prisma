@@ -1,0 +1,238 @@
+// =============================================================================
+// PRISMA SCHEMA EXTENSIONS - Add to your existing schema.prisma
+// =============================================================================
+
+// ENUMS
+enum Gender { male female unknown }
+enum AccessTier { standard premium }
+
+// UPDATED MERCHANT MODEL
+model Merchant {
+  id                       String   @id @default(cuid())
+  name                     String
+  slug                     String   @unique
+  logoUrl                  String?
+  accessTier               AccessTier @default(standard)
+  hasCashbackAccess        Boolean    @default(true)
+  hasRetailInsightsAccess  Boolean    @default(false)
+  
+  transactions             Transaction[]
+  campaigns                Campaign[]
+  stores                   Store[]
+  competitorGroups         CompetitorGroup[]
+  dailyMetrics             DailyMetrics[]
+  anomalies                Anomaly[]
+  recommendations          Recommendation[]
+  
+  createdAt                DateTime @default(now())
+  updatedAt                DateTime @updatedAt
+  @@map("merchants")
+}
+
+// STORE MODEL
+model Store {
+  id           String   @id @default(cuid())
+  merchantId   String
+  name         String
+  city         String?
+  merchant     Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  transactions Transaction[]
+  @@map("stores")
+}
+
+// EXTENDED TRANSACTION MODEL
+model Transaction {
+  id                    String    @id @default(cuid())
+  merchantId            String
+  storeId               String?
+  customerId            String?
+  customerGender        Gender?
+  customerAge           Int?
+  customerBirthYear     Int?
+  transactionDate       DateTime
+  transactionTime       DateTime?
+  dayOfWeek             Int
+  amount                Decimal   @db.Decimal(15, 2)
+  currency              String    @default("RON")
+  isCashbackTransaction Boolean   @default(false)
+  cashbackAmount        Decimal?  @db.Decimal(15, 2)
+  campaignId            String?
+  
+  merchant              Merchant  @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  store                 Store?    @relation(fields: [storeId], references: [id])
+  campaign              Campaign? @relation(fields: [campaignId], references: [id])
+  createdAt             DateTime  @default(now())
+  
+  @@index([merchantId])
+  @@index([customerId])
+  @@index([transactionDate])
+  @@map("transactions")
+}
+
+// CUSTOMER MODEL
+model Customer {
+  id                    String    @id @default(cuid())
+  externalId            String    @unique
+  gender                Gender?
+  birthYear             Int?
+  age                   Int?
+  firstTransactionDate  DateTime?
+  lastTransactionDate   DateTime?
+  totalTransactions     Int       @default(0)
+  totalSpend            Decimal   @default(0) @db.Decimal(15, 2)
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+  @@map("customers")
+}
+
+// CAMPAIGN MODEL
+model Campaign {
+  id                    String    @id @default(cuid())
+  merchantId            String
+  name                  String
+  startDate             DateTime
+  endDate               DateTime
+  budget                Decimal   @db.Decimal(15, 2)
+  cashbackPercentage    Decimal   @db.Decimal(5, 2)
+  isActive              Boolean   @default(true)
+  merchant              Merchant  @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  transactions          Transaction[]
+  createdAt             DateTime  @default(now())
+  @@map("campaigns")
+}
+
+// COMPETITOR GROUP
+model CompetitorGroup {
+  id                    String    @id @default(cuid())
+  merchantId            String
+  name                  String
+  isDefault             Boolean   @default(false)
+  competitorIds         String[]
+  merchant              Merchant  @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  createdAt             DateTime  @default(now())
+  @@unique([merchantId, name])
+  @@map("competitor_groups")
+}
+
+// DAILY METRICS (pre-aggregated)
+model DailyMetrics {
+  id                    String    @id @default(cuid())
+  date                  DateTime  @db.Date
+  merchantId            String
+  totalTransactions     Int       @default(0)
+  totalSales            Decimal   @default(0) @db.Decimal(15, 2)
+  uniqueCustomers       Int       @default(0)
+  avgReceipt            Decimal?  @db.Decimal(10, 2)
+  cashbackTransactions  Int       @default(0)
+  cashbackSales         Decimal   @default(0) @db.Decimal(15, 2)
+  customersMale         Int       @default(0)
+  customersFemale       Int       @default(0)
+  customersAge18_24     Int       @default(0)
+  customersAge25_34     Int       @default(0)
+  customersAge35_44     Int       @default(0)
+  customersAge45_54     Int       @default(0)
+  customersAge55_64     Int       @default(0)
+  customersAge65Plus    Int       @default(0)
+  avgCustomerAge        Decimal?  @db.Decimal(5, 2)
+  merchant              Merchant  @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  @@unique([date, merchantId])
+  @@map("daily_metrics")
+}
+
+// MARKET SHARE SNAPSHOT
+model MarketShareSnapshot {
+  id                        String    @id @default(cuid())
+  date                      DateTime  @db.Date
+  merchantId                String
+  totalSales                Decimal   @db.Decimal(15, 2)
+  marketShareBySales        Decimal   @db.Decimal(8, 4)
+  totalTransactions         Int
+  marketShareByTransactions Decimal   @db.Decimal(8, 4)
+  shareOfWallet             Decimal?  @db.Decimal(8, 4)
+  createdAt                 DateTime  @default(now())
+  @@unique([date, merchantId])
+  @@map("market_share_snapshots")
+}
+
+// CUSTOMER MOBILITY
+model CustomerMobilitySnapshot {
+  id                    String    @id @default(cuid())
+  periodStart           DateTime
+  periodEnd             DateTime
+  fromMerchantId        String
+  toMerchantId          String
+  overlapCustomers      Int
+  overlapPercentage     Decimal   @db.Decimal(8, 4)
+  createdAt             DateTime  @default(now())
+  @@unique([periodStart, periodEnd, fromMerchantId, toMerchantId])
+  @@map("customer_mobility_snapshots")
+}
+
+// CHURN ANALYSIS
+model ChurnAnalysis {
+  id                        String      @id @default(cuid())
+  merchantId                String
+  periodStart               DateTime
+  periodEnd                 DateTime
+  totalCustomers            Int
+  newCustomers              Int
+  retainedCustomers         Int
+  churnedCustomers          Int
+  churnDestinations         Json?
+  newCustomerSources        Json?
+  createdAt                 DateTime    @default(now())
+  @@unique([merchantId, periodStart, periodEnd])
+  @@map("churn_analyses")
+}
+
+// AI ANOMALY
+model Anomaly {
+  id                    String        @id @default(cuid())
+  merchantId            String
+  type                  String
+  severity              String
+  title                 String
+  description           String        @db.Text
+  metric                String
+  expectedValue         Decimal       @db.Decimal(15, 2)
+  actualValue           Decimal       @db.Decimal(15, 2)
+  percentageChange      Decimal       @db.Decimal(8, 2)
+  affectedPeriodStart   DateTime
+  affectedPeriodEnd     DateTime
+  isRead                Boolean       @default(false)
+  isDismissed           Boolean       @default(false)
+  merchant              Merchant      @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  detectedAt            DateTime      @default(now())
+  @@map("anomalies")
+}
+
+// AI RECOMMENDATION
+model Recommendation {
+  id                    String              @id @default(cuid())
+  merchantId            String
+  type                  String
+  priority              String
+  title                 String
+  description           String              @db.Text
+  rationale             String              @db.Text
+  suggestedActions      String[]
+  contextMode           String
+  isRead                Boolean             @default(false)
+  isDismissed           Boolean             @default(false)
+  merchant              Merchant            @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  createdAt             DateTime            @default(now())
+  @@map("recommendations")
+}
+
+// AI CHAT HISTORY
+model AIChatMessage {
+  id                    String    @id @default(cuid())
+  merchantId            String
+  sessionId             String
+  role                  String
+  content               String    @db.Text
+  contextMode           String
+  timestamp             DateTime  @default(now())
+  @@index([merchantId, sessionId])
+  @@map("ai_chat_messages")
+}

@@ -1,0 +1,507 @@
+<h1>KaChing Analytics Platform</h1>
+<h2>Overview</h2>
+<p>KaChing Analytics is an AI-native retail analytics platform designed for Romanian merchants. It provides real-time insights, anomaly detection, AI-powered recommendations, and executive briefings to help merchants understand their cashback campaign performance.</p>
+<p><strong>Production URL:</strong> <code>https://kaching-analytics-production.up.railway.app</code></p>
+<hr>
+<h2>For Merchants</h2>
+<h3>Getting Started</h3>
+<ol>
+<li><strong>Login:</strong> Go to <code>/login</code> and enter your credentials</li>
+<li>After login, you&#39;ll see your merchant dashboard with all your analytics</li>
+</ol>
+<p><strong>Example Logins:</strong></p>
+<table>
+<thead>
+<tr>
+<th>User</th>
+<th>Email</th>
+<th>Password</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Admin</td>
+<td><code>admin@kaching.com</code></td>
+<td><code>admin123</code></td>
+</tr>
+<tr>
+<td>Mega Image</td>
+<td><code>merchant@megaimage.ro</code></td>
+<td><code>megaimage123</code></td>
+</tr>
+</tbody></table>
+<hr>
+<h3>Dashboard (<code>/</code>)</h3>
+<p>The main dashboard provides a comprehensive overview of your business performance:</p>
+<h4>Date Range Picker</h4>
+<p>Select the time period for your data:</p>
+<ul>
+<li><strong>Quick Presets:</strong> Last 7, 14, 30, 60, or 90 days</li>
+<li><strong>Custom Range:</strong> Select specific start and end dates</li>
+<li>Click &quot;Apply Range&quot; to update all dashboard data</li>
+</ul>
+<h4>Data Export</h4>
+<p>Export your data in multiple formats:</p>
+<ul>
+<li><strong>CSV</strong> - Comma-separated values for spreadsheets</li>
+<li><strong>Excel</strong> - Microsoft Excel format (.xls)</li>
+<li><strong>JSON</strong> - For developers and integrations</li>
+</ul>
+<p>Click the export button next to the date picker to download.</p>
+<h4>Dashboard Customization</h4>
+<p>Personalize your dashboard layout:</p>
+<ol>
+<li>Click the sliders icon in the header</li>
+<li>Toggle widgets on/off</li>
+<li>Drag to reorder widgets</li>
+<li>Click &quot;Reset to default&quot; to restore original layout</li>
+</ol>
+<p>Your preferences are saved automatically.</p>
+<h4>Key Metrics Cards</h4>
+<ul>
+<li><strong>Transactions</strong> - Total number of transactions in the selected period</li>
+<li><strong>Revenue</strong> - Total revenue generated (in RON)</li>
+<li><strong>Customers</strong> - Unique customers who made purchases</li>
+<li><strong>Cashback Paid</strong> - Total cashback distributed to customers</li>
+</ul>
+<h4>Executive Briefing Panel</h4>
+<p>An AI-generated summary of your business performance:</p>
+<ul>
+<li><strong>Performance Score</strong> (0-100) - Overall health indicator</li>
+<li><strong>Daily/Weekly Toggle</strong> - Switch between briefing views</li>
+<li><strong>Key Metrics Comparison</strong> - Current vs previous period with trends</li>
+<li><strong>Highlights</strong> - Positive and negative performance highlights</li>
+<li><strong>Alerts</strong> - Critical issues requiring attention</li>
+<li><strong>Top Recommendations</strong> - AI-suggested actions</li>
+</ul>
+<h4>Anomaly Alerts</h4>
+<p>Automatic detection of unusual patterns:</p>
+<ul>
+<li><strong>Spikes</strong> - Unexpected increases</li>
+<li><strong>Drops</strong> - Unexpected decreases</li>
+<li><strong>Severity Levels</strong> - Low, Medium, High, Critical</li>
+<li>Each includes: description, expected vs actual values, recommended action</li>
+</ul>
+<h4>AI Recommendations</h4>
+<p>Personalized suggestions based on your data:</p>
+<ul>
+<li><strong>Urgency Levels</strong> - High, Medium, Low priority</li>
+<li><strong>Expected Impact</strong> - Potential improvement metrics</li>
+<li>Categories: Retention, Campaign optimization, Engagement, Growth</li>
+</ul>
+<h4>AI Chat Assistant</h4>
+<p>Conversational interface for data questions:</p>
+<ul>
+<li>&quot;What are my top insights right now?&quot;</li>
+<li>&quot;How am I doing vs competitors?&quot;</li>
+<li>&quot;Forecast next week&#39;s transactions&quot;</li>
+<li>&quot;Why did revenue drop yesterday?&quot;</li>
+</ul>
+<hr>
+<h3>Analytics Page (<code>/analytics</code>)</h3>
+<p>Deep-dive analytics with five tabs:</p>
+<h4>Trends Tab</h4>
+<ul>
+<li>Interactive charts showing historical performance</li>
+<li>Revenue, transactions, customers over time</li>
+<li>Customizable date ranges</li>
+<li>Trend lines and moving averages</li>
+</ul>
+<h4>Forecast Tab</h4>
+<ul>
+<li>7-day predictions for key metrics</li>
+<li>Confidence intervals (upper/lower bounds)</li>
+<li>Seasonal pattern detection</li>
+</ul>
+<h4>Competition Tab</h4>
+<ul>
+<li>Anonymous comparison with other merchants</li>
+<li>Your rank in the platform</li>
+<li>Benchmark metrics</li>
+</ul>
+<h4>Cohorts Tab (NEW)</h4>
+<p>Customer retention analysis:</p>
+<ul>
+<li><strong>Cohort Matrix</strong> - Visual heatmap of retention over time</li>
+<li><strong>Acquisition Cohorts</strong> - Group customers by first purchase month</li>
+<li><strong>Retention Rates</strong> - Track how many customers return each month</li>
+<li><strong>Key Metrics:</strong><ul>
+<li>Total customers analyzed</li>
+<li>Average 1st month retention</li>
+<li>Average 3rd month retention</li>
+</ul>
+</li>
+</ul>
+<h4>AI Insights Tab</h4>
+<p>Combined view of Executive Briefing, Anomaly Alerts, and AI Recommendations.</p>
+<hr>
+<h3>Settings Page (<code>/settings</code>)</h3>
+<p>Configure your merchant account:</p>
+<h4>API Access</h4>
+<p>Generate and manage your API key:</p>
+<ol>
+<li>Click &quot;Generate API Key&quot; - Creates <code>ka_live_xxx</code> format key</li>
+<li><strong>Important:</strong> Copy immediately - shown only once (stored as hash)</li>
+<li>Rate limit: 1000 requests/hour default</li>
+</ol>
+<p><strong>API Authentication:</strong> Use <code>Authorization: Bearer &lt;api_key&gt;</code> header.</p>
+<pre><code class="language-bash">curl -H &quot;Authorization: Bearer ka_live_xxx&quot; \
+  https://kaching-analytics-production.up.railway.app/api/v1/metrics
+</code></pre>
+<h4>Webhooks</h4>
+<p>Receive real-time notifications:</p>
+<ul>
+<li><strong>URL:</strong> Your HTTPS endpoint (required)</li>
+<li><strong>Events:</strong> anomaly.detected, daily_report.ready, threshold.exceeded, weekly_report.ready</li>
+<li><strong>Security:</strong> HMAC-SHA256 signature in <code>X-KaChing-Signature</code> header</li>
+</ul>
+<h4>Branding (White-Labeling)</h4>
+<p>Customize dashboard appearance:</p>
+<ul>
+<li>Logo URL</li>
+<li>Primary/Secondary colors</li>
+<li>Custom domain (contact support)</li>
+</ul>
+<h4>Scheduled Reports (NEW)</h4>
+<p>Automated email reports:</p>
+<ol>
+<li>Click &quot;Add Report Schedule&quot;</li>
+<li>Configure:<ul>
+<li><strong>Report Name</strong> - e.g., &quot;Weekly Summary&quot;</li>
+<li><strong>Frequency</strong> - Daily, Weekly, or Monthly</li>
+<li><strong>Recipients</strong> - Email addresses (comma-separated)</li>
+</ul>
+</li>
+<li>Reports include metrics summary, trends, and anomalies</li>
+</ol>
+<h4>Notification Settings (NEW)</h4>
+<p>Configure alert preferences:</p>
+<p><strong>Email Notifications:</strong></p>
+<ul>
+<li>Anomaly alerts - Unusual patterns detected</li>
+<li>Weekly digest - Summary of metrics</li>
+<li>Threshold alerts - When metrics fall below limits</li>
+</ul>
+<p><strong>Slack Integration:</strong></p>
+<ol>
+<li>Create a Slack Incoming Webhook</li>
+<li>Paste the webhook URL</li>
+<li>Click &quot;Send test&quot; to verify</li>
+</ol>
+<p><strong>Alert Thresholds:</strong></p>
+<ul>
+<li>Minimum daily revenue (RON)</li>
+<li>Minimum daily transactions</li>
+</ul>
+<h4>Language (NEW)</h4>
+<p>Switch between English and Romanian (Română).</p>
+<hr>
+<h2>For Administrators</h2>
+<h3>Admin Panel (<code>/admin</code>)</h3>
+<p><strong>Access:</strong> Only <code>super_admin</code> and <code>admin</code> roles.</p>
+<h3>Users Management</h3>
+<h4>Creating Users</h4>
+<ol>
+<li>Click &quot;Add User&quot;</li>
+<li>Fill in: Email, Name, Role, Merchant, Password</li>
+<li>Share credentials securely with user</li>
+</ol>
+<h4>User Roles</h4>
+<table>
+<thead>
+<tr>
+<th>Role</th>
+<th>Dashboard Access</th>
+<th>Admin Panel</th>
+<th>Manage Users</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>super_admin</code></td>
+<td>All merchants</td>
+<td>Yes</td>
+<td>All users</td>
+</tr>
+<tr>
+<td><code>admin</code></td>
+<td>Own merchant</td>
+<td>Yes</td>
+<td>Own merchant users</td>
+</tr>
+<tr>
+<td><code>merchant</code></td>
+<td>Own merchant</td>
+<td>No</td>
+<td>No</td>
+</tr>
+<tr>
+<td><code>analyst</code></td>
+<td>Own merchant (read-only)</td>
+<td>No</td>
+<td>No</td>
+</tr>
+<tr>
+<td><code>viewer</code></td>
+<td>Limited</td>
+<td>No</td>
+<td>No</td>
+</tr>
+</tbody></table>
+<h3>Merchants Management</h3>
+<h4>Creating Merchants</h4>
+<ol>
+<li>Click &quot;Add Merchant&quot;</li>
+<li>Fill in: Name, Industry, Cashback %</li>
+<li>Optionally create admin user</li>
+</ol>
+<h3>Data Import (<code>/admin/import</code>)</h3>
+<p>Upload transaction data:</p>
+<ol>
+<li><strong>Drag &amp; Drop CSV</strong></li>
+<li><strong>Auto-Detection</strong> - System analyzes structure</li>
+<li><strong>Column Mapping</strong> - Map to database fields</li>
+<li><strong>Import</strong> - Choose append or replace</li>
+<li><strong>Aggregate</strong> - Generate daily metrics</li>
+</ol>
+<p><strong>Requires:</strong> Admin or Super Admin role</p>
+<h3>Audit Logs (<code>/admin/audit-logs</code>)</h3>
+<p>Track all user activity:</p>
+<ul>
+<li>Who accessed what</li>
+<li>When actions occurred</li>
+<li>IP addresses and user agents</li>
+<li>Filter by user, merchant, action, date</li>
+</ul>
+<hr>
+<h2>Security Features</h2>
+<h3>Authentication</h3>
+<ul>
+<li><strong>NextAuth.js</strong> with JWT strategy</li>
+<li><strong>Azure AD SSO</strong> support (enterprise)</li>
+<li><strong>Bcrypt</strong> password hashing (10 rounds)</li>
+<li><strong>Session timeout:</strong> 24 hours (auto-refresh every hour)</li>
+</ul>
+<h3>API Security</h3>
+<ul>
+<li><strong>API keys hashed</strong> with SHA-256 before storage</li>
+<li><strong>Header-only authentication</strong> (no query params)</li>
+<li><strong>Rate Limiting:</strong><ul>
+<li>60 req/min (standard)</li>
+<li>10 req/min (auth)</li>
+<li>20 req/min (AI)</li>
+<li>10 req/min (export)</li>
+</ul>
+</li>
+</ul>
+<h3>Webhook Security</h3>
+<ul>
+<li><strong>HTTPS required</strong> - HTTP rejected</li>
+<li><strong>SSRF protection</strong> - Private IPs blocked</li>
+<li><strong>Request timeout</strong> - 10 seconds max</li>
+<li><strong>Signature verification</strong> - HMAC-SHA256</li>
+</ul>
+<h3>Security Headers</h3>
+<ul>
+<li>Strict-Transport-Security (HSTS)</li>
+<li>Content-Security-Policy (CSP)</li>
+<li>X-Frame-Options: DENY</li>
+<li>X-Content-Type-Options: nosniff</li>
+</ul>
+<hr>
+<h2>API Reference</h2>
+<h3>Authentication</h3>
+<p>All API endpoints require authentication via <code>Authorization: Bearer &lt;api_key&gt;</code> header.</p>
+<h3>GET /api/v1/metrics</h3>
+<p>Returns daily metrics for your merchant.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>days</code></td>
+<td>number</td>
+<td>30</td>
+<td>Number of days</td>
+</tr>
+<tr>
+<td><code>start_date</code></td>
+<td>string</td>
+<td>-</td>
+<td>Start date (YYYY-MM-DD)</td>
+</tr>
+<tr>
+<td><code>end_date</code></td>
+<td>string</td>
+<td>-</td>
+<td>End date (YYYY-MM-DD)</td>
+</tr>
+</tbody></table>
+<p><strong>Response:</strong></p>
+<pre><code class="language-json">{
+  &quot;merchant_id&quot;: &quot;uuid&quot;,
+  &quot;period&quot;: { &quot;start&quot;: &quot;2024-01-01&quot;, &quot;end&quot;: &quot;2024-01-30&quot; },
+  &quot;metrics&quot;: [
+    {
+      &quot;date&quot;: &quot;2024-01-15&quot;,
+      &quot;transactions_count&quot;: 1250,
+      &quot;revenue&quot;: 45000.00,
+      &quot;unique_customers&quot;: 890,
+      &quot;cashback_paid&quot;: 2250.00
+    }
+  ],
+  &quot;totals&quot;: {
+    &quot;transactions&quot;: 35000,
+    &quot;revenue&quot;: 1250000.00,
+    &quot;customers&quot;: 12500,
+    &quot;cashback&quot;: 62500.00
+  }
+}
+</code></pre>
+<h3>GET /api/v1/anomalies</h3>
+<p>Returns detected anomalies.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>days</code></td>
+<td>number</td>
+<td>7</td>
+<td>Days to analyze</td>
+</tr>
+<tr>
+<td><code>severity</code></td>
+<td>string</td>
+<td>-</td>
+<td>Filter: low, medium, high, critical</td>
+</tr>
+</tbody></table>
+<h3>GET /api/v1/forecast</h3>
+<p>Returns 7-day forecast.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>metric</code></td>
+<td>string</td>
+<td>revenue</td>
+<td>revenue or transactions</td>
+</tr>
+</tbody></table>
+<hr>
+<h2>Quick Reference</h2>
+<h3>Key URLs</h3>
+<table>
+<thead>
+<tr>
+<th>Page</th>
+<th>URL</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Dashboard</td>
+<td><code>/</code></td>
+<td>Main merchant dashboard</td>
+</tr>
+<tr>
+<td>Analytics</td>
+<td><code>/analytics</code></td>
+<td>Deep-dive analytics + cohorts</td>
+</tr>
+<tr>
+<td>Settings</td>
+<td><code>/settings</code></td>
+<td>API, webhooks, branding, reports, notifications</td>
+</tr>
+<tr>
+<td>Admin Panel</td>
+<td><code>/admin</code></td>
+<td>User &amp; merchant management</td>
+</tr>
+<tr>
+<td>Data Import</td>
+<td><code>/admin/import</code></td>
+<td>CSV upload</td>
+</tr>
+<tr>
+<td>Audit Logs</td>
+<td><code>/admin/audit-logs</code></td>
+<td>Activity tracking</td>
+</tr>
+<tr>
+<td>Login</td>
+<td><code>/login</code></td>
+<td>Authentication</td>
+</tr>
+</tbody></table>
+<h3>New Features (Phase 4)</h3>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>Location</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Date Range Picker</td>
+<td>Dashboard/Analytics header</td>
+<td>Custom date selection with presets</td>
+</tr>
+<tr>
+<td>Data Export</td>
+<td>Dashboard/Analytics header</td>
+<td>CSV, Excel, JSON export</td>
+</tr>
+<tr>
+<td>Scheduled Reports</td>
+<td>Settings page</td>
+<td>Automated email reports</td>
+</tr>
+<tr>
+<td>Notifications</td>
+<td>Settings page</td>
+<td>Email/Slack alerts configuration</td>
+</tr>
+<tr>
+<td>Cohort Analysis</td>
+<td>Analytics &gt; Cohorts tab</td>
+<td>Customer retention heatmap</td>
+</tr>
+<tr>
+<td>Dashboard Customizer</td>
+<td>Dashboard header (sliders icon)</td>
+<td>Show/hide/reorder widgets</td>
+</tr>
+<tr>
+<td>Language Selector</td>
+<td>Settings page</td>
+<td>English/Romanian</td>
+</tr>
+</tbody></table>
+<h3>PWA Installation</h3>
+<p><strong>iOS:</strong> Safari &gt; Share &gt; Add to Home Screen
+<strong>Android:</strong> Chrome &gt; Menu &gt; Install App
+<strong>Desktop:</strong> Click install icon in address bar</p>
+<hr>
+<h2>Support</h2>
+<p>For issues or feature requests, contact the platform administrator or open an issue in the project repository.</p>

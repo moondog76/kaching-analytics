@@ -1,0 +1,162 @@
+/* PLUXEE BRAND THEME - KaChing Analytics Pro */
+
+:root {
+  /* PRIMARY COLORS */
+  --pluxee-deep-blue: #221C46;
+  --pluxee-ultra-green: #00EB5E;
+  --pluxee-boldly-blue: #17CCF9;
+  --pluxee-very-yellow: #FFDC37;
+  --pluxee-coral: #FF7375;
+  --pluxee-white: #FFFFFF;
+
+  /* TINTS - 50% */
+  --pluxee-deep-blue-50: rgba(34, 28, 70, 0.5);
+  --pluxee-ultra-green-50: rgba(0, 235, 94, 0.5);
+  --pluxee-boldly-blue-50: rgba(23, 204, 249, 0.5);
+  --pluxee-very-yellow-50: rgba(255, 220, 55, 0.5);
+  --pluxee-coral-50: rgba(255, 115, 117, 0.5);
+
+  /* TINTS - 20% */
+  --pluxee-deep-blue-20: rgba(34, 28, 70, 0.2);
+  --pluxee-ultra-green-20: rgba(0, 235, 94, 0.2);
+  --pluxee-boldly-blue-20: rgba(23, 204, 249, 0.2);
+  --pluxee-very-yellow-20: rgba(255, 220, 55, 0.2);
+  --pluxee-coral-20: rgba(255, 115, 117, 0.2);
+
+  /* TINTS - 5% */
+  --pluxee-deep-blue-05: rgba(34, 28, 70, 0.05);
+  --pluxee-ultra-green-05: rgba(0, 235, 94, 0.05);
+  --pluxee-boldly-blue-05: rgba(23, 204, 249, 0.05);
+
+  /* SEMANTIC COLORS */
+  --color-bg-primary: var(--pluxee-white);
+  --color-bg-secondary: var(--pluxee-deep-blue-05);
+  --color-bg-card: var(--pluxee-white);
+  --color-text-primary: var(--pluxee-deep-blue);
+  --color-text-secondary: var(--pluxee-deep-blue-50);
+  --color-text-muted: var(--pluxee-deep-blue-20);
+  --color-border-primary: var(--pluxee-deep-blue-20);
+  --color-border-secondary: var(--pluxee-deep-blue-05);
+  --color-success: var(--pluxee-ultra-green);
+  --color-warning: var(--pluxee-very-yellow);
+  --color-error: var(--pluxee-coral);
+  --color-info: var(--pluxee-boldly-blue);
+
+  /* BUTTONS */
+  --color-btn-primary-bg: var(--pluxee-ultra-green);
+  --color-btn-primary-text: var(--pluxee-deep-blue);
+  --color-btn-primary-hover: #00D654;
+  --color-btn-secondary-bg: var(--pluxee-white);
+  --color-btn-secondary-text: var(--pluxee-deep-blue);
+  --color-btn-secondary-border: var(--pluxee-deep-blue);
+
+  /* CHART COLORS (use in order for multi-series) */
+  --chart-color-1: var(--pluxee-ultra-green);
+  --chart-color-2: var(--pluxee-boldly-blue);
+  --chart-color-3: var(--pluxee-very-yellow);
+  --chart-color-4: var(--pluxee-coral);
+  --chart-color-5: var(--pluxee-deep-blue);
+  --chart-color-6: #8B5CF6;
+  --chart-color-7: #EC4899;
+  --chart-color-8: #14B8A6;
+
+  /* TYPOGRAPHY */
+  --font-family: 'TT Travels', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-demibold: 600;
+  --font-weight-bold: 700;
+  --tracking-headers: -0.03em;
+  --tracking-body: -0.025em;
+
+  /* SPACING */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+
+  /* RADIUS */
+  --radius-sm: 0.25rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-full: 9999px;
+
+  /* SHADOWS */
+  --shadow-card: 0 2px 8px rgba(34, 28, 70, 0.08);
+  --shadow-card-hover: 0 4px 16px rgba(34, 28, 70, 0.12);
+}
+
+/* TYPOGRAPHY CLASSES */
+.text-h1 { font-size: 2.25rem; font-weight: var(--font-weight-demibold); letter-spacing: var(--tracking-headers); }
+.text-h2 { font-size: 1.875rem; font-weight: var(--font-weight-demibold); letter-spacing: var(--tracking-headers); }
+.text-h3 { font-size: 1.5rem; font-weight: var(--font-weight-medium); letter-spacing: var(--tracking-headers); }
+.text-h4 { font-size: 1.25rem; font-weight: var(--font-weight-medium); }
+.text-body { font-size: 1rem; font-weight: var(--font-weight-regular); letter-spacing: var(--tracking-body); }
+.text-sm { font-size: 0.875rem; }
+.text-xs { font-size: 0.75rem; }
+.text-kpi { font-size: 2.25rem; font-weight: var(--font-weight-bold); line-height: 1; }
+
+/* COMPONENT CLASSES */
+.pluxee-card {
+  background: var(--color-bg-card);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  border: 1px solid var(--color-border-secondary);
+  padding: var(--space-6);
+}
+
+.pluxee-btn-primary {
+  background: var(--color-btn-primary-bg);
+  color: var(--color-btn-primary-text);
+  padding: var(--space-3) var(--space-5);
+  border-radius: var(--radius-md);
+  font-weight: var(--font-weight-medium);
+  border: none;
+  cursor: pointer;
+}
+
+.pluxee-btn-primary:hover { background: var(--color-btn-primary-hover); }
+
+.pluxee-tabs {
+  display: flex;
+  gap: var(--space-1);
+  background: var(--color-bg-secondary);
+  padding: var(--space-1);
+  border-radius: var(--radius-lg);
+}
+
+.pluxee-tab {
+  padding: var(--space-3) var(--space-5);
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-text-secondary);
+  border: none;
+  cursor: pointer;
+}
+
+.pluxee-tab--active {
+  background: var(--color-bg-card);
+  color: var(--color-text-primary);
+  box-shadow: var(--shadow-card);
+}
+
+.pluxee-badge {
+  font-size: var(--space-3);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-full);
+}
+
+.pluxee-badge--premium {
+  background: var(--pluxee-ultra-green);
+  color: var(--pluxee-deep-blue);
+}
+
+/* UTILITY CLASSES */
+.text-positive { color: var(--color-success); }
+.text-negative { color: var(--color-error); }
+.bg-success { background: var(--pluxee-ultra-green-05); }
+.bg-error { background: var(--pluxee-coral-05); }

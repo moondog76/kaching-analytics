@@ -1,0 +1,131 @@
+// =============================================================================
+// CHART CONFIGURATION - Pluxee colors and Recharts theme
+// =============================================================================
+
+// PLUXEE COLOR PALETTE
+export const PLUXEE_COLORS = {
+  deepBlue: '#221C46',
+  ultraGreen: '#00EB5E',
+  boldlyBlue: '#17CCF9',
+  veryYellow: '#FFDC37',
+  coral: '#FF7375',
+  white: '#FFFFFF',
+  
+  // Tints
+  deepBlue50: 'rgba(34, 28, 70, 0.5)',
+  deepBlue20: 'rgba(34, 28, 70, 0.2)',
+  deepBlue05: 'rgba(34, 28, 70, 0.05)',
+  ultraGreen50: 'rgba(0, 235, 94, 0.5)',
+  ultraGreen20: 'rgba(0, 235, 94, 0.2)',
+  ultraGreen05: 'rgba(0, 235, 94, 0.05)',
+};
+
+// CHART COLOR SEQUENCE (use in order for multi-series)
+export const CHART_COLORS = [
+  PLUXEE_COLORS.ultraGreen,
+  PLUXEE_COLORS.boldlyBlue,
+  PLUXEE_COLORS.veryYellow,
+  PLUXEE_COLORS.coral,
+  PLUXEE_COLORS.deepBlue,
+  '#8B5CF6', // Purple
+  '#EC4899', // Pink
+  '#14B8A6', // Teal
+];
+
+// SEMANTIC CHART COLORS
+export const CHART_COLORS_SEMANTIC = {
+  positive: PLUXEE_COLORS.ultraGreen,
+  negative: PLUXEE_COLORS.coral,
+  neutral: PLUXEE_COLORS.deepBlue20,
+  male: PLUXEE_COLORS.boldlyBlue,
+  female: PLUXEE_COLORS.coral,
+  unknown: PLUXEE_COLORS.deepBlue20,
+  new: PLUXEE_COLORS.ultraGreen,
+  retained: PLUXEE_COLORS.boldlyBlue,
+  churned: PLUXEE_COLORS.coral,
+};
+
+// RECHARTS COMMON PROPS
+export const RECHARTS_THEME = {
+  fontFamily: "'TT Travels', sans-serif",
+  fontSize: 12,
+  textColor: PLUXEE_COLORS.deepBlue,
+  gridColor: PLUXEE_COLORS.deepBlue05,
+  axisColor: PLUXEE_COLORS.deepBlue20,
+};
+
+export const commonAxisProps = {
+  stroke: RECHARTS_THEME.axisColor,
+  tick: { fill: RECHARTS_THEME.textColor, fontSize: 12 },
+  tickLine: { stroke: RECHARTS_THEME.axisColor },
+};
+
+export const commonTooltipProps = {
+  contentStyle: {
+    backgroundColor: PLUXEE_COLORS.white,
+    border: `1px solid ${PLUXEE_COLORS.deepBlue20}`,
+    borderRadius: '8px',
+    boxShadow: '0 4px 12px rgba(34, 28, 70, 0.1)',
+  },
+  labelStyle: { color: PLUXEE_COLORS.deepBlue, fontWeight: 600 },
+};
+
+export const commonGridProps = {
+  stroke: RECHARTS_THEME.gridColor,
+  strokeDasharray: '3 3',
+};
+
+// HELPER: Get color for index
+export function getChartColor(index: number): string {
+  return CHART_COLORS[index % CHART_COLORS.length];
+}
+
+// HELPER: Generate gradient ID
+export function getGradientId(color: string): string {
+  return `gradient-${color.replace('#', '')}`;
+}
+
+// RECHARTS GRADIENT DEFS (add to chart)
+export const GradientDefs = () => (
+  <defs>
+    {CHART_COLORS.map((color, i) => (
+      <linearGradient key={i} id={getGradientId(color)} x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stopColor={color} stopOpacity={0.3} />
+        <stop offset="100%" stopColor={color} stopOpacity={0.05} />
+      </linearGradient>
+    ))}
+  </defs>
+);
+
+// FORMAT HELPERS
+export const formatters = {
+  currency: (value: number, currency = 'RON') => 
+    new Intl.NumberFormat('ro-RO', { style: 'currency', currency }).format(value),
+  
+  percentage: (value: number, decimals = 1) => 
+    `${value.toFixed(decimals)}%`,
+  
+  number: (value: number) => 
+    new Intl.NumberFormat('ro-RO').format(value),
+  
+  compact: (value: number) => 
+    new Intl.NumberFormat('ro-RO', { notation: 'compact' }).format(value),
+  
+  multiplier: (value: number) => 
+    `${value.toFixed(1)}x`,
+  
+  date: (date: Date | string) => 
+    new Date(date).toLocaleDateString('ro-RO', { month: 'short', year: 'numeric' }),
+  
+  dateShort: (date: Date | string) => 
+    new Date(date).toLocaleDateString('ro-RO', { month: 'short' }),
+};
+
+// CHART MARGIN PRESETS
+export const chartMargins = {
+  default: { top: 20, right: 30, left: 20, bottom: 20 },
+  withLegend: { top: 20, right: 30, left: 20, bottom: 60 },
+  compact: { top: 10, right: 10, left: 10, bottom: 10 },
+};
+
+export default PLUXEE_COLORS;

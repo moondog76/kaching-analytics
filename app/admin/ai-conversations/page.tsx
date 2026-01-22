@@ -183,17 +183,23 @@ export default function AIConversationsPage() {
     }
   }
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
-    const now = new Date()
-    const diffMs = now.getTime() - date.getTime()
-    const diffHours = Math.floor(diffMs / (1000 * 60 * 60))
-    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
+  const formatDate = (dateString: string | null | undefined) => {
+    if (!dateString) return 'Unknown'
+    try {
+      const date = new Date(dateString)
+      if (isNaN(date.getTime())) return 'Invalid date'
+      const now = new Date()
+      const diffMs = now.getTime() - date.getTime()
+      const diffHours = Math.floor(diffMs / (1000 * 60 * 60))
+      const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
 
-    if (diffHours < 1) return 'Just now'
-    if (diffHours < 24) return `${diffHours} hours ago`
-    if (diffDays < 7) return `${diffDays} days ago`
-    return date.toLocaleDateString()
+      if (diffHours < 1) return 'Just now'
+      if (diffHours < 24) return `${diffHours} hours ago`
+      if (diffDays < 7) return `${diffDays} days ago`
+      return date.toLocaleDateString()
+    } catch {
+      return 'Unknown'
+    }
   }
 
   if (!session || (userRole !== 'super_admin' && userRole !== 'admin')) {
@@ -263,7 +269,7 @@ export default function AIConversationsPage() {
                 <div className="w-3 h-3 bg-pluxee-ultra-green rounded-full animate-bounce" style={{ animationDelay: '0.4s' }} />
               </div>
             </div>
-          ) : insights ? (
+          ) : insights && insights.period ? (
             <div className="space-y-6">
               {insights.isDemo && (
                 <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-sm text-amber-700">
@@ -279,13 +285,13 @@ export default function AIConversationsPage() {
                 <div className="bg-slate-50 rounded-lg p-4">
                   <div className="text-sm text-slate-500">Avg Messages/Conv</div>
                   <div className="text-2xl font-bold text-pluxee-deep-blue">
-                    {insights.aiPerformance.avgMessagesPerConversation?.toFixed(1) || '-'}
+                    {insights.aiPerformance?.avgMessagesPerConversation?.toFixed(1) || '-'}
                   </div>
                 </div>
                 <div className="bg-slate-50 rounded-lg p-4">
                   <div className="text-sm text-slate-500">Resolution Rate</div>
                   <div className="text-2xl font-bold text-pluxee-ultra-green">
-                    {insights.aiPerformance.resolutionRate ? `${insights.aiPerformance.resolutionRate}%` : '-'}
+                    {insights.aiPerformance?.resolutionRate ? `${insights.aiPerformance.resolutionRate}%` : '-'}
                   </div>
                 </div>
                 <div className="bg-slate-50 rounded-lg p-4">

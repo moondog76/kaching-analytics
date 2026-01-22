@@ -91,8 +91,29 @@ export async function GET(request: NextRequest) {
       generatedAt: null,
       needsGeneration: true
     })
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error fetching AI insights:', error)
+    // Handle case where table doesn't exist yet
+    if (error?.code === 'P2021' || error?.message?.includes('does not exist')) {
+      const endDate = new Date()
+      const startDate = new Date()
+      startDate.setDate(startDate.getDate() - 7)
+      return NextResponse.json({
+        period: { start: startDate, end: endDate },
+        totalConversations: 0,
+        topTopics: null,
+        painPoints: null,
+        featureRequests: null,
+        confusionPoints: null,
+        aiPerformance: {
+          avgMessagesPerConversation: 0,
+          resolutionRate: null
+        },
+        fullAnalysis: null,
+        generatedAt: null,
+        needsGeneration: true
+      })
+    }
     return NextResponse.json(
       { error: 'Failed to fetch insights' },
       { status: 500 }
@@ -269,8 +290,15 @@ Be specific and quantitative. Focus on actionable insights.`
       fullAnalysis: analysis.summary || responseText,
       generatedAt: stored.created_at
     })
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error generating AI insights:', error)
+    // Handle case where table doesn't exist yet
+    if (error?.code === 'P2021' || error?.message?.includes('does not exist')) {
+      return NextResponse.json(
+        { error: 'Database tables not yet migrated. Please run prisma db push.' },
+        { status: 503 }
+      )
+    }
     return NextResponse.json(
       { error: 'Failed to generate insights' },
       { status: 500 }

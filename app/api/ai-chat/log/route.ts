@@ -80,8 +80,13 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json({ success: true })
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error logging AI chat:', error)
+    // Handle case where table doesn't exist yet - silently succeed
+    // so the user experience is not affected
+    if (error?.code === 'P2021' || error?.message?.includes('does not exist')) {
+      return NextResponse.json({ success: true, warning: 'Logging not available - tables not migrated' })
+    }
     return NextResponse.json(
       { error: 'Failed to log chat messages' },
       { status: 500 }

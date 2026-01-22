@@ -75,8 +75,12 @@ export async function GET(
         timestamp: m.timestamp
       }))
     })
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error fetching conversation detail:', error)
+    // Handle case where table doesn't exist yet
+    if (error?.code === 'P2021' || error?.message?.includes('does not exist')) {
+      return NextResponse.json({ error: 'Conversation not found' }, { status: 404 })
+    }
     return NextResponse.json(
       { error: 'Failed to fetch conversation' },
       { status: 500 }
@@ -141,8 +145,12 @@ export async function PATCH(
       tags: updated.tags,
       summary: updated.summary
     })
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error updating conversation:', error)
+    // Handle case where table doesn't exist yet
+    if (error?.code === 'P2021' || error?.message?.includes('does not exist')) {
+      return NextResponse.json({ error: 'Conversation not found' }, { status: 404 })
+    }
     return NextResponse.json(
       { error: 'Failed to update conversation' },
       { status: 500 }

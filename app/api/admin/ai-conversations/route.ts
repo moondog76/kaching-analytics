@@ -107,8 +107,18 @@ export async function GET(request: NextRequest) {
       limit,
       totalPages: Math.ceil(total / limit)
     })
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error fetching AI conversations:', error)
+    // Handle case where table doesn't exist yet
+    if (error?.code === 'P2021' || error?.message?.includes('does not exist')) {
+      return NextResponse.json({
+        conversations: [],
+        total: 0,
+        page: 1,
+        limit: 20,
+        totalPages: 0
+      })
+    }
     return NextResponse.json(
       { error: 'Failed to fetch conversations' },
       { status: 500 }

@@ -139,7 +139,7 @@ function AnalyticsContent() {
                 </div>
 
                 {/* Primary Navigation - Cashback Insights | Retail Insights */}
-                <nav className="flex gap-1 bg-slate-100 rounded-lg p-1 ml-6">
+                <nav className="flex gap-1 bg-slate-100 rounded-lg p-1 ml-8">
                   <button
                     onClick={() => handleInsightChange('cashback')}
                     className={`px-5 py-2.5 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${
@@ -179,9 +179,6 @@ function AnalyticsContent() {
                   <span className="text-sm font-medium text-slate-700">
                     {session?.user?.name || data.carrefour.merchant_name}
                   </span>
-                  {merchantAccess.tier === 'premium' && (
-                    <span className="pluxee-badge pluxee-badge--premium text-xs">Pro</span>
-                  )}
                 </div>
 
                 {/* Settings */}

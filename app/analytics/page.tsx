@@ -115,11 +115,21 @@ function AnalyticsContent() {
           <div className="max-w-7xl mx-auto px-8 py-4">
             {/* Main navigation row */}
             <div className="flex items-center justify-between">
-              {/* Left side: Merchant + Filters + Main Nav */}
+              {/* Left side: Logo + Merchant + Filters + Main Nav */}
               <div className="flex items-center">
-                {/* Merchant Name */}
-                <div className="text-xl font-semibold text-pluxee-deep-blue pr-6 border-r border-slate-200">
-                  {data?.carrefour?.merchant_name || "Analytics"}
+                {/* Pluxee Logo */}
+                <div className="flex items-center gap-3 pr-6 border-r border-slate-200">
+                  <svg className="h-8 w-auto" viewBox="0 0 120 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    {/* Pluxee logomark - stylized P with gradient accent */}
+                    <rect x="0" y="0" width="32" height="32" rx="8" fill="#221C46"/>
+                    <path d="M8 8h8c4.418 0 8 3.582 8 8s-3.582 8-8 8h-2v-6h2c1.105 0 2-.895 2-2s-.895-2-2-2h-2v10H8V8z" fill="#00EB5E"/>
+                    <circle cx="22" cy="10" r="3" fill="#17CCF9"/>
+                    {/* Pluxee wordmark */}
+                    <text x="40" y="22" fontFamily="system-ui, -apple-system, sans-serif" fontSize="16" fontWeight="700" fill="#221C46">pluxee</text>
+                  </svg>
+                  <span className="text-xl font-semibold text-pluxee-deep-blue">
+                    {data?.carrefour?.merchant_name || "Analytics"}
+                  </span>
                 </div>
 
                 {/* Filters Group */}

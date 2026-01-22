@@ -12,6 +12,7 @@ import { CashbackInsights } from '@/components/cashback'
 import { RetailInsights } from '@/components/retail'
 import DateRangePicker, { DateRange, getDefaultDateRange } from '@/components/DateRangePicker'
 import ExportButton from '@/components/ExportButton'
+import PluxeeAnalystSidebar from '@/components/PluxeeAnalystSidebar'
 import Link from 'next/link'
 
 // Wrap page in Suspense for useSearchParams
@@ -234,6 +235,13 @@ function AnalyticsContent() {
           </div>
         </main>
       </div>
+
+      {/* Pluxee Analyst Sidebar */}
+      <PluxeeAnalystSidebar
+        contextMode={aiContextMode}
+        merchantId={data.carrefour.merchant_id}
+        merchantName={data.carrefour.merchant_name}
+      />
 
       {/* Upgrade Modal for Retail Insights */}
       {showUpgradeModal && (

@@ -5,7 +5,6 @@ import { CashbackInsightsData, AIContextMode } from '@/types/analytics'
 import CashbackHeroKPIs from './CashbackHeroKPIs'
 import CampaignPerformance from './CampaignPerformance'
 import CustomerProfile from './CustomerProfile'
-import AIChat from '@/components/AIChat'
 import ChartBuilder from '@/components/ChartBuilder'
 import ForecastChart from '@/components/ForecastChart'
 import CohortAnalysis from '@/components/CohortAnalysis'
@@ -226,14 +225,6 @@ export default function CashbackInsights({
 
             {/* Customer Profile */}
             <CustomerProfile data={data.customerProfile} />
-
-            {/* AI Chat - Cashback Context */}
-            <AIChat
-              contextMode="cashback"
-              merchantName={merchantName}
-              merchantId={merchantId}
-              embedded={true}
-            />
           </div>
         )}
 

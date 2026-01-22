@@ -2,7 +2,6 @@
 
 import { useMemo } from 'react'
 import { MarketShareTimeSeries, MobilityMatrix, ChurnAnalysis, AgeDistributionBucket, BarChartDataPoint } from '@/types/analytics'
-import AIChat from '@/components/AIChat'
 
 interface RetailAIInsightsProps {
   merchantId: string
@@ -217,56 +216,6 @@ function generateRecommendationsFromData(
   return recommendations.slice(0, 4) // Return top 4 recommendations
 }
 
-// Summarize data for AI context
-function summarizeDataForAI(
-  marketShareData: MarketShareTimeSeries[],
-  mobilityMatrix: MobilityMatrix,
-  churnAnalysis: ChurnAnalysis,
-  merchantName: string
-): string {
-  const lines: string[] = []
-
-  // Market share summary
-  if (marketShareData.length > 0) {
-    const latest = marketShareData[marketShareData.length - 1]
-    const yourShare = latest[merchantName] as number
-    lines.push(`Market Share: Your current share is ${yourShare?.toFixed(1) || 'N/A'}%.`)
-
-    // Find top competitor
-    let topCompetitor = ''
-    let topShare = 0
-    Object.keys(latest).forEach(key => {
-      if (key !== 'date' && key !== merchantName) {
-        const share = latest[key] as number
-        if (share > topShare) {
-          topShare = share
-          topCompetitor = key
-        }
-      }
-    })
-    if (topCompetitor) {
-      lines.push(`Top Competitor: ${topCompetitor} with ${topShare.toFixed(1)}% market share.`)
-    }
-  }
-
-  // Churn summary
-  if (churnAnalysis.summary) {
-    lines.push(`Churn Rate: ${churnAnalysis.summary.churnedCustomersPercentage.toFixed(1)}% (${churnAnalysis.summary.churnedCustomers.toLocaleString()} customers)`)
-    lines.push(`Retention Rate: ${churnAnalysis.summary.retainedCustomersPercentage.toFixed(1)}%`)
-    lines.push(`New Customer Acquisition: ${churnAnalysis.summary.newCustomersPercentage.toFixed(1)}% (${churnAnalysis.summary.newCustomers.toLocaleString()} customers)`)
-  }
-
-  // Mobility summary
-  if (mobilityMatrix.singleMerchantLoyalty) {
-    const yourLoyalty = mobilityMatrix.singleMerchantLoyalty.find(l => l.merchantName === merchantName)
-    if (yourLoyalty) {
-      lines.push(`Exclusive Loyalty: ${yourLoyalty.percentage.toFixed(1)}% of customers shop only with you.`)
-    }
-  }
-
-  return lines.join('\n')
-}
-
 export default function RetailAIInsights({
   merchantId,
   merchantName,
@@ -287,12 +236,6 @@ export default function RetailAIInsights({
   const recommendations = useMemo(() =>
     generateRecommendationsFromData(marketShareData, mobilityMatrix, churnAnalysis, ageDistribution, merchantName),
     [marketShareData, mobilityMatrix, churnAnalysis, ageDistribution, merchantName]
-  )
-
-  // Prepare data context for AI chat
-  const dataContext = useMemo(() =>
-    summarizeDataForAI(marketShareData, mobilityMatrix, churnAnalysis, merchantName),
-    [marketShareData, mobilityMatrix, churnAnalysis, merchantName]
   )
 
   const getSeverityColor = (severity: string) => {
@@ -432,37 +375,6 @@ export default function RetailAIInsights({
             <p>No recommendations available at this time</p>
           </div>
         )}
-      </div>
-
-      {/* Pluxee Analyst Chat */}
-      <div className="pluxee-card">
-        <div className="mb-4">
-          <h3 className="font-semibold text-pluxee-deep-blue flex items-center gap-2 mb-2">
-            {/* Pluxee X icon */}
-            <div className="w-6 h-6 bg-pluxee-ultra-green rounded-full flex items-center justify-center">
-              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none">
-                <path d="M6 6L18 18M18 6L6 18" stroke="#221C46" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            </div>
-            Pluxee Analyst
-          </h3>
-          <p className="text-sm text-slate-500">
-            Ask about market trends, competitive positioning, customer mobility, or strategic opportunities
-          </p>
-        </div>
-
-        {/* Data context hint */}
-        <div className="mb-4 p-3 bg-slate-50 rounded-lg border border-slate-100">
-          <p className="text-xs text-slate-500 font-medium mb-1">Current Data Context:</p>
-          <p className="text-xs text-slate-400 whitespace-pre-line">{dataContext}</p>
-        </div>
-
-        <AIChat
-          contextMode="retail"
-          merchantName={merchantName}
-          merchantId={merchantId}
-          embedded={true}
-        />
       </div>
     </div>
   )

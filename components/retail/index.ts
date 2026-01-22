@@ -1,1 +1,5 @@
 export { default as RetailInsights } from './RetailInsights'
+export { default as MarketPosition } from './MarketPosition'
+export { default as CompetitiveDemographics } from './CompetitiveDemographics'
+export { default as MobilityMatrix } from './MobilityMatrix'
+export { default as ChurnIntelligence } from './ChurnIntelligence'

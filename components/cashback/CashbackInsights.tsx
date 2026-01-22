@@ -6,12 +6,23 @@ import CashbackHeroKPIs from './CashbackHeroKPIs'
 import CampaignPerformance from './CampaignPerformance'
 import CustomerProfile from './CustomerProfile'
 import AIChat from '@/components/AIChat'
+import ChartBuilder from '@/components/ChartBuilder'
+import ForecastChart from '@/components/ForecastChart'
+import CohortAnalysis from '@/components/CohortAnalysis'
+import { ExecutiveBriefing } from '@/components/ai/ExecutiveBriefing'
+import { AnomalyAlerts } from '@/components/ai/AnomalyAlerts'
+import { RecommendationCards } from '@/components/ai/RecommendationCards'
+import { MerchantMetrics, CompetitorData } from '@/lib/types'
 
 interface CashbackInsightsProps {
   merchantId: string
   merchantName: string
   onContextChange?: (mode: AIContextMode) => void
+  merchantData?: MerchantMetrics | null
+  historicalData?: MerchantMetrics[]
 }
+
+type CashbackSection = 'performance' | 'trends' | 'forecast' | 'cohorts' | 'ai'
 
 // Demo data generator for development
 function generateDemoData(): CashbackInsightsData {
@@ -68,8 +79,11 @@ function generateDemoData(): CashbackInsightsData {
 export default function CashbackInsights({
   merchantId,
   merchantName,
-  onContextChange
+  onContextChange,
+  merchantData,
+  historicalData
 }: CashbackInsightsProps) {
+  const [activeSection, setActiveSection] = useState<CashbackSection>('performance')
   const [data, setData] = useState<CashbackInsightsData | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -147,25 +161,135 @@ export default function CashbackInsights({
         </p>
       </div>
 
-      {/* Hero KPIs */}
-      <CashbackHeroKPIs data={data.heroKPIs} />
+      {/* Section Navigation - matching Retail Insights design */}
+      <div className="pluxee-tabs">
+        <button
+          onClick={() => setActiveSection('performance')}
+          className={`pluxee-tab ${activeSection === 'performance' ? 'pluxee-tab--active' : ''}`}
+        >
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          Campaign Performance
+        </button>
+        <button
+          onClick={() => setActiveSection('trends')}
+          className={`pluxee-tab ${activeSection === 'trends' ? 'pluxee-tab--active' : ''}`}
+        >
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
+          </svg>
+          Trend Analysis
+        </button>
+        <button
+          onClick={() => setActiveSection('forecast')}
+          className={`pluxee-tab ${activeSection === 'forecast' ? 'pluxee-tab--active' : ''}`}
+        >
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+          </svg>
+          Forecasting
+        </button>
+        <button
+          onClick={() => setActiveSection('cohorts')}
+          className={`pluxee-tab ${activeSection === 'cohorts' ? 'pluxee-tab--active' : ''}`}
+        >
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+          Cohorts
+        </button>
+        <button
+          onClick={() => setActiveSection('ai')}
+          className={`pluxee-tab ${activeSection === 'ai' ? 'pluxee-tab--active' : ''}`}
+        >
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+          </svg>
+          AI Insights
+        </button>
+      </div>
 
-      {/* Campaign Performance */}
-      <CampaignPerformance
-        receiptComparison={data.receiptComparison}
-        visitComparison={data.visitComparison}
-        distribution={data.distribution}
-      />
+      {/* Section Content */}
+      <div className="animate-fade-in-up">
+        {activeSection === 'performance' && (
+          <div className="space-y-8">
+            {/* Hero KPIs */}
+            <CashbackHeroKPIs data={data.heroKPIs} />
 
-      {/* Customer Profile */}
-      <CustomerProfile data={data.customerProfile} />
+            {/* Campaign Performance */}
+            <CampaignPerformance
+              receiptComparison={data.receiptComparison}
+              visitComparison={data.visitComparison}
+              distribution={data.distribution}
+            />
 
-      {/* AI Chat - Cashback Context */}
-      <AIChat
-        contextMode="cashback"
-        merchantName={merchantName}
-        merchantId={merchantId}
-      />
+            {/* Customer Profile */}
+            <CustomerProfile data={data.customerProfile} />
+
+            {/* AI Chat - Cashback Context */}
+            <AIChat
+              contextMode="cashback"
+              merchantName={merchantName}
+              merchantId={merchantId}
+            />
+          </div>
+        )}
+
+        {activeSection === 'trends' && (
+          <div className="space-y-6">
+            <div>
+              <h2 className="text-xl font-semibold text-pluxee-deep-blue mb-2">Trend Analysis</h2>
+              <p className="text-slate-500">Interactive visualizations of your performance metrics over time</p>
+            </div>
+            {merchantData ? (
+              <ChartBuilder
+                merchantData={merchantData}
+                competitorData={[]}
+                historicalData={historicalData || []}
+              />
+            ) : (
+              <div className="pluxee-card text-center py-12">
+                <p className="text-slate-500">Loading trend data...</p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {activeSection === 'forecast' && (
+          <div className="space-y-6">
+            <div>
+              <h2 className="text-xl font-semibold text-pluxee-deep-blue mb-2">Forecasting</h2>
+              <p className="text-slate-500">AI-powered predictions with confidence intervals</p>
+            </div>
+            <ForecastChart metric="transactions" />
+          </div>
+        )}
+
+        {activeSection === 'cohorts' && (
+          <div className="space-y-6">
+            <div>
+              <h2 className="text-xl font-semibold text-pluxee-deep-blue mb-2">Cohort Analysis</h2>
+              <p className="text-slate-500">Customer retention and behavior patterns by acquisition date</p>
+            </div>
+            <CohortAnalysis merchantId={merchantId} />
+          </div>
+        )}
+
+        {activeSection === 'ai' && (
+          <div className="space-y-6">
+            <div>
+              <h2 className="text-xl font-semibold text-pluxee-deep-blue mb-2">AI Insights</h2>
+              <p className="text-slate-500">Automated anomaly detection and actionable recommendations</p>
+            </div>
+            <ExecutiveBriefing merchantId={merchantId} />
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <AnomalyAlerts merchantId={merchantId} />
+              <RecommendationCards merchantId={merchantId} />
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   )
 }

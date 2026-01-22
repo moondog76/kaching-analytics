@@ -10,15 +10,8 @@ import { MerchantAccess, canAccessTab, getUpgradePrompt } from '@/lib/access-tie
 import { InsightTab } from '@/components/InsightsTabs'
 import { CashbackInsights } from '@/components/cashback'
 import { RetailInsights } from '@/components/retail'
-import ChartBuilder from '@/components/ChartBuilder'
-import ForecastChart from '@/components/ForecastChart'
-import CompetitorComparison from '@/components/CompetitorComparison'
-import { ExecutiveBriefing } from '@/components/ai/ExecutiveBriefing'
-import { AnomalyAlerts } from '@/components/ai/AnomalyAlerts'
-import { RecommendationCards } from '@/components/ai/RecommendationCards'
 import DateRangePicker, { DateRange, getDefaultDateRange } from '@/components/DateRangePicker'
 import ExportButton from '@/components/ExportButton'
-import CohortAnalysis from '@/components/CohortAnalysis'
 import Link from 'next/link'
 
 // Wrap page in Suspense for useSearchParams
@@ -59,12 +52,6 @@ function AnalyticsContent() {
   // Active insight tab - now controlled via top nav
   const [activeInsight, setActiveInsight] = useState<InsightTab>(initialTab)
   const [aiContextMode, setAiContextMode] = useState<AIContextMode>(initialTab)
-
-  // Legacy analytics tabs
-  const [legacyTab, setLegacyTab] = useState<'trends' | 'forecast' | 'competition' | 'cohort' | 'ai'>('trends')
-
-  // View mode: 'insights' for new two-tier view, 'legacy' for old analytics
-  const [viewMode, setViewMode] = useState<'insights' | 'legacy'>('insights')
 
   // Upgrade modal state
   const [showUpgradeModal, setShowUpgradeModal] = useState(false)
@@ -142,7 +129,7 @@ function AnalyticsContent() {
                 </div>
 
                 {/* Primary Navigation - Cashback Insights | Retail Insights */}
-                <nav className="flex gap-1 bg-slate-100 rounded-lg p-1 mx-6">
+                <nav className="flex gap-1 bg-slate-100 rounded-lg p-1 ml-6">
                   <button
                     onClick={() => handleInsightChange('cashback')}
                     className={`px-5 py-2.5 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${
@@ -172,30 +159,6 @@ function AnalyticsContent() {
                     <span className="pluxee-badge pluxee-badge--premium text-xs">Pro</span>
                   </button>
                 </nav>
-
-                {/* View Mode Toggle */}
-                <div className="flex bg-slate-100 rounded-lg p-1">
-                  <button
-                    onClick={() => setViewMode('insights')}
-                    className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${
-                      viewMode === 'insights'
-                        ? 'bg-white text-pluxee-deep-blue shadow-sm'
-                        : 'text-slate-500 hover:text-slate-700'
-                    }`}
-                  >
-                    Insights
-                  </button>
-                  <button
-                    onClick={() => setViewMode('legacy')}
-                    className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${
-                      viewMode === 'legacy'
-                        ? 'bg-white text-pluxee-deep-blue shadow-sm'
-                        : 'text-slate-500 hover:text-slate-700'
-                    }`}
-                  >
-                    Charts
-                  </button>
-                </div>
               </div>
 
               {/* Right side: User + Settings + Admin + Logout */}
@@ -242,190 +205,26 @@ function AnalyticsContent() {
         </header>
 
         <main className="max-w-7xl mx-auto px-8 py-8">
-          {viewMode === 'insights' ? (
-            /* New Insights View */
-            <div className="space-y-8">
-              {/* Tab Content - Navigation is now in the header */}
-              <div className="animate-fade-in-up">
-                {activeInsight === 'cashback' && (
-                  <CashbackInsights
-                    merchantId={data.carrefour.merchant_id}
-                    merchantName={data.carrefour.merchant_name}
-                    onContextChange={handleContextChange}
-                  />
-                )}
+          {/* Tab Content */}
+          <div className="animate-fade-in-up">
+            {activeInsight === 'cashback' && (
+              <CashbackInsights
+                merchantId={data.carrefour.merchant_id}
+                merchantName={data.carrefour.merchant_name}
+                onContextChange={handleContextChange}
+                merchantData={data.carrefour}
+                historicalData={data.historical}
+              />
+            )}
 
-                {activeInsight === 'retail' && merchantAccess.hasRetailInsightsAccess && (
-                  <RetailInsights
-                    merchantId={data.carrefour.merchant_id}
-                    merchantName={data.carrefour.merchant_name}
-                    onContextChange={handleContextChange}
-                  />
-                )}
-              </div>
-            </div>
-          ) : (
-            /* Legacy Charts View */
-            <div className="space-y-8">
-              {/* Hero Section */}
-              <div className="animate-fade-in-up">
-                <h1 className="text-2xl font-semibold text-pluxee-deep-blue mb-2">
-                  Advanced Analytics
-                </h1>
-                <p className="text-slate-500 text-base">
-                  Interactive visualizations and forecasting powered by statistical analysis
-                </p>
-              </div>
-
-              {/* Legacy Tabs */}
-              <div className="flex gap-2 border-b border-slate-200">
-                <button
-                  onClick={() => setLegacyTab('trends')}
-                  className={`px-6 py-3 font-medium transition-all relative ${
-                    legacyTab === 'trends'
-                      ? 'text-pluxee-deep-blue'
-                      : 'text-slate-500 hover:text-slate-900'
-                  }`}
-                >
-                  Trend Analysis
-                  {legacyTab === 'trends' && (
-                    <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-pluxee-ultra-green" />
-                  )}
-                </button>
-
-                <button
-                  onClick={() => setLegacyTab('forecast')}
-                  className={`px-6 py-3 font-medium transition-all relative ${
-                    legacyTab === 'forecast'
-                      ? 'text-pluxee-deep-blue'
-                      : 'text-slate-500 hover:text-slate-900'
-                  }`}
-                >
-                  Forecasting
-                  {legacyTab === 'forecast' && (
-                    <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-pluxee-ultra-green" />
-                  )}
-                </button>
-
-                <button
-                  onClick={() => setLegacyTab('competition')}
-                  className={`px-6 py-3 font-medium transition-all relative ${
-                    legacyTab === 'competition'
-                      ? 'text-pluxee-deep-blue'
-                      : 'text-slate-500 hover:text-slate-900'
-                  }`}
-                >
-                  Competition
-                  {legacyTab === 'competition' && (
-                    <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-pluxee-ultra-green" />
-                  )}
-                </button>
-
-                <button
-                  onClick={() => setLegacyTab('cohort')}
-                  className={`px-6 py-3 font-medium transition-all relative ${
-                    legacyTab === 'cohort'
-                      ? 'text-pluxee-deep-blue'
-                      : 'text-slate-500 hover:text-slate-900'
-                  }`}
-                >
-                  Cohorts
-                  {legacyTab === 'cohort' && (
-                    <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-pluxee-ultra-green" />
-                  )}
-                </button>
-
-                <button
-                  onClick={() => setLegacyTab('ai')}
-                  className={`px-6 py-3 font-medium transition-all relative ${
-                    legacyTab === 'ai'
-                      ? 'text-pluxee-deep-blue'
-                      : 'text-slate-500 hover:text-slate-900'
-                  }`}
-                >
-                  AI Insights
-                  {legacyTab === 'ai' && (
-                    <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-pluxee-ultra-green" />
-                  )}
-                </button>
-              </div>
-
-              {/* Tab Content */}
-              <div className="animate-fade-in-up">
-                {legacyTab === 'trends' && (
-                  <ChartBuilder
-                    merchantData={data.carrefour}
-                    competitorData={data.competitors}
-                    historicalData={data.historical}
-                  />
-                )}
-
-                {legacyTab === 'forecast' && (
-                  <ForecastChart metric="transactions" />
-                )}
-
-                {legacyTab === 'competition' && (
-                  <CompetitorComparison
-                    yourData={data.carrefour}
-                    competitors={data.competitors}
-                  />
-                )}
-
-                {legacyTab === 'cohort' && (
-                  <CohortAnalysis merchantId={data.carrefour.merchant_id} />
-                )}
-
-                {legacyTab === 'ai' && (
-                  <div className="space-y-6">
-                    <ExecutiveBriefing merchantId={data.carrefour.merchant_id} />
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                      <AnomalyAlerts merchantId={data.carrefour.merchant_id} />
-                      <RecommendationCards merchantId={data.carrefour.merchant_id} />
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Feature Highlights */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
-                <div className="pluxee-card">
-                  <div className="w-10 h-10 bg-pluxee-boldly-blue-20 rounded-lg flex items-center justify-center mb-3">
-                    <svg className="w-5 h-5 text-pluxee-boldly-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                    </svg>
-                  </div>
-                  <h3 className="text-pluxee-deep-blue font-semibold mb-2">Real-Time Interaction</h3>
-                  <p className="text-sm text-slate-500">
-                    Hover over any data point to see detailed breakdowns. Click metrics to switch views instantly.
-                  </p>
-                </div>
-
-                <div className="pluxee-card">
-                  <div className="w-10 h-10 bg-pluxee-ultra-green-20 rounded-lg flex items-center justify-center mb-3">
-                    <svg className="w-5 h-5 text-pluxee-ultra-green" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                  </div>
-                  <h3 className="text-pluxee-deep-blue font-semibold mb-2">Statistical Accuracy</h3>
-                  <p className="text-sm text-slate-500">
-                    All forecasts use time-series decomposition with 95% confidence intervals and MAPE accuracy metrics.
-                  </p>
-                </div>
-
-                <div className="pluxee-card">
-                  <div className="w-10 h-10 bg-pluxee-very-yellow-20 rounded-lg flex items-center justify-center mb-3">
-                    <svg className="w-5 h-5 text-pluxee-deep-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                    </svg>
-                  </div>
-                  <h3 className="text-pluxee-deep-blue font-semibold mb-2">Mobile-First Design</h3>
-                  <p className="text-sm text-slate-500">
-                    Every chart is fully responsive and works beautifully on desktop, tablet, and mobile devices.
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
+            {activeInsight === 'retail' && merchantAccess.hasRetailInsightsAccess && (
+              <RetailInsights
+                merchantId={data.carrefour.merchant_id}
+                merchantName={data.carrefour.merchant_name}
+                onContextChange={handleContextChange}
+              />
+            )}
+          </div>
         </main>
       </div>
 

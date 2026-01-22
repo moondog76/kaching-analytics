@@ -1,12 +1,13 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, Suspense } from 'react'
 import { signOut, useSession } from 'next-auth/react'
+import { useSearchParams } from 'next/navigation'
 import { format } from 'date-fns'
 import { MerchantMetrics, CompetitorData } from '@/lib/types'
 import { AIContextMode } from '@/types/analytics'
-import { MerchantAccess } from '@/lib/access-tier'
-import InsightsTabs, { InsightTab } from '@/components/InsightsTabs'
+import { MerchantAccess, canAccessTab, getUpgradePrompt } from '@/lib/access-tier'
+import { InsightTab } from '@/components/InsightsTabs'
 import { CashbackInsights } from '@/components/cashback'
 import { RetailInsights } from '@/components/retail'
 import ChartBuilder from '@/components/ChartBuilder'
@@ -20,8 +21,30 @@ import ExportButton from '@/components/ExportButton'
 import CohortAnalysis from '@/components/CohortAnalysis'
 import Link from 'next/link'
 
+// Wrap page in Suspense for useSearchParams
 export default function AnalyticsPage() {
+  return (
+    <Suspense fallback={<AnalyticsLoading />}>
+      <AnalyticsContent />
+    </Suspense>
+  )
+}
+
+function AnalyticsLoading() {
+  return (
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+      <div className="flex gap-3">
+        <div className="w-4 h-4 bg-pluxee-ultra-green rounded-full animate-bounce" style={{ animationDelay: '0s' }} />
+        <div className="w-4 h-4 bg-pluxee-ultra-green rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
+        <div className="w-4 h-4 bg-pluxee-ultra-green rounded-full animate-bounce" style={{ animationDelay: '0.4s' }} />
+      </div>
+    </div>
+  )
+}
+
+function AnalyticsContent() {
   const { data: session } = useSession()
+  const searchParams = useSearchParams()
   const [data, setData] = useState<{
     carrefour: MerchantMetrics
     competitors: CompetitorData[]
@@ -29,15 +52,22 @@ export default function AnalyticsPage() {
   } | null>(null)
   const [dateRange, setDateRange] = useState<DateRange>(getDefaultDateRange)
 
-  // Insights tabs state
-  const [insightTab, setInsightTab] = useState<InsightTab>('cashback')
-  const [aiContextMode, setAiContextMode] = useState<AIContextMode>('cashback')
+  // Get initial tab from URL params
+  const tabParam = searchParams.get('tab')
+  const initialTab: InsightTab = tabParam === 'retail' ? 'retail' : 'cashback'
+
+  // Active insight tab - now controlled via top nav
+  const [activeInsight, setActiveInsight] = useState<InsightTab>(initialTab)
+  const [aiContextMode, setAiContextMode] = useState<AIContextMode>(initialTab)
 
   // Legacy analytics tabs
   const [legacyTab, setLegacyTab] = useState<'trends' | 'forecast' | 'competition' | 'cohort' | 'ai'>('trends')
 
   // View mode: 'insights' for new two-tier view, 'legacy' for old analytics
   const [viewMode, setViewMode] = useState<'insights' | 'legacy'>('insights')
+
+  // Upgrade modal state
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false)
 
   // Mock merchant access - in production this would come from the session/API
   const [merchantAccess] = useState<MerchantAccess>({
@@ -47,6 +77,15 @@ export default function AnalyticsPage() {
     availableTabs: ['cashback', 'retail'],
     defaultTab: 'cashback'
   })
+
+  // Handle insight tab change with access control
+  const handleInsightChange = (tab: InsightTab) => {
+    if (canAccessTab(merchantAccess, tab)) {
+      setActiveInsight(tab)
+    } else {
+      setShowUpgradeModal(true)
+    }
+  }
 
   useEffect(() => {
     async function loadData() {
@@ -96,19 +135,36 @@ export default function AnalyticsPage() {
               <DateRangePicker value={dateRange} onChange={setDateRange} />
               <ExportButton dateRange={dateRange} merchantId={data?.carrefour?.merchant_id} />
 
-              <nav className="flex gap-1">
-                <Link
-                  href="/"
-                  className="px-4 py-2 rounded-lg text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-all"
+              {/* Primary Navigation - Cashback Insights | Retail Insights */}
+              <nav className="flex gap-1 bg-slate-100 rounded-lg p-1">
+                <button
+                  onClick={() => handleInsightChange('cashback')}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${
+                    activeInsight === 'cashback'
+                      ? 'bg-white text-pluxee-deep-blue shadow-sm'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
                 >
-                  Dashboard
-                </Link>
-                <Link
-                  href="/analytics"
-                  className="px-4 py-2 rounded-lg text-sm font-medium bg-pluxee-ultra-green-20 text-pluxee-deep-blue"
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  Cashback Insights
+                </button>
+                <button
+                  onClick={() => handleInsightChange('retail')}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${
+                    activeInsight === 'retail'
+                      ? 'bg-white text-pluxee-deep-blue shadow-sm'
+                      : 'text-slate-600 hover:text-slate-900'
+                  } ${!merchantAccess.hasRetailInsightsAccess ? 'opacity-60' : ''}`}
+                  title={!merchantAccess.hasRetailInsightsAccess ? getUpgradePrompt('Retail Insights') : 'Market intelligence & competitive analysis'}
                 >
-                  Analytics
-                </Link>
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                  </svg>
+                  Retail Insights
+                  <span className="pluxee-badge pluxee-badge--premium text-xs">Pro</span>
+                </button>
               </nav>
             </div>
 
@@ -163,16 +219,9 @@ export default function AnalyticsPage() {
           {viewMode === 'insights' ? (
             /* New Insights View */
             <div className="space-y-8">
-              {/* Insights Tab Navigation */}
-              <InsightsTabs
-                activeTab={insightTab}
-                onTabChange={setInsightTab}
-                merchantAccess={merchantAccess}
-              />
-
-              {/* Tab Content */}
+              {/* Tab Content - Navigation is now in the header */}
               <div className="animate-fade-in-up">
-                {insightTab === 'cashback' && (
+                {activeInsight === 'cashback' && (
                   <CashbackInsights
                     merchantId={data.carrefour.merchant_id}
                     merchantName={data.carrefour.merchant_name}
@@ -180,7 +229,7 @@ export default function AnalyticsPage() {
                   />
                 )}
 
-                {insightTab === 'retail' && merchantAccess.hasRetailInsightsAccess && (
+                {activeInsight === 'retail' && merchantAccess.hasRetailInsightsAccess && (
                   <RetailInsights
                     merchantId={data.carrefour.merchant_id}
                     merchantName={data.carrefour.merchant_name}
@@ -353,6 +402,76 @@ export default function AnalyticsPage() {
           )}
         </main>
       </div>
+
+      {/* Upgrade Modal for Retail Insights */}
+      {showUpgradeModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl p-6 max-w-md mx-4 shadow-xl">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-12 h-12 rounded-full bg-pluxee-ultra-green/10 flex items-center justify-center">
+                <svg className="w-6 h-6 text-pluxee-ultra-green" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-pluxee-deep-blue">Unlock Retail Insights</h3>
+                <p className="text-sm text-slate-500">Premium feature</p>
+              </div>
+            </div>
+
+            <p className="text-slate-600 mb-6">
+              Get access to comprehensive market intelligence, competitive analysis, customer mobility tracking,
+              and churn analytics. See where your customers shop, identify growth opportunities, and make
+              data-driven strategic decisions.
+            </p>
+
+            <div className="space-y-3 mb-6">
+              <div className="flex items-center gap-2 text-sm text-slate-700">
+                <svg className="w-4 h-4 text-pluxee-ultra-green" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                Market share & competitive positioning
+              </div>
+              <div className="flex items-center gap-2 text-sm text-slate-700">
+                <svg className="w-4 h-4 text-pluxee-ultra-green" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                Customer mobility matrix
+              </div>
+              <div className="flex items-center gap-2 text-sm text-slate-700">
+                <svg className="w-4 h-4 text-pluxee-ultra-green" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                Churn analysis & customer flow
+              </div>
+              <div className="flex items-center gap-2 text-sm text-slate-700">
+                <svg className="w-4 h-4 text-pluxee-ultra-green" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                AI-powered market intelligence
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowUpgradeModal(false)}
+                className="flex-1 px-4 py-2 border border-slate-200 rounded-lg text-slate-700 hover:bg-slate-50"
+              >
+                Maybe later
+              </button>
+              <button
+                onClick={() => {
+                  window.open('mailto:sales@pluxee.com?subject=Retail%20Insights%20Upgrade', '_blank')
+                  setShowUpgradeModal(false)
+                }}
+                className="flex-1 px-4 py-2 bg-pluxee-ultra-green text-pluxee-deep-blue font-medium rounded-lg hover:bg-pluxee-ultra-green/90"
+              >
+                Contact Sales
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

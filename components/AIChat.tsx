@@ -215,13 +215,14 @@ export default function AIChat({
         onClick={() => setIsMinimized(!isMinimized)}
       >
         <div className="flex items-center gap-3">
-          <div className={`w-10 h-10 ${getContextColor()} rounded-full flex items-center justify-center`}>
-            <svg className="w-5 h-5 text-pluxee-deep-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+          <div className="w-10 h-10 bg-pluxee-ultra-green rounded-full flex items-center justify-center">
+            {/* Pluxee X icon */}
+            <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none">
+              <path d="M6 6L18 18M18 6L6 18" stroke="#221C46" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
           </div>
           <div>
-            <div className="font-semibold text-pluxee-deep-blue">AI Analyst</div>
+            <div className="font-semibold text-pluxee-deep-blue">Pluxee Analyst</div>
             <div className="text-xs text-slate-500">
               {isLoading ? 'Analyzing...' : getContextLabel()}
             </div>

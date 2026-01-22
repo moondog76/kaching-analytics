@@ -226,7 +226,7 @@ export default function AIConversationsPage() {
             </Link>
             <div>
               <h1 className="text-xl font-semibold text-pluxee-deep-blue">AI Conversation Analytics</h1>
-              <p className="text-sm text-slate-500">Monitor and analyze AI Analyst conversations</p>
+              <p className="text-sm text-slate-500">Monitor and analyze Pluxee Analyst conversations</p>
             </div>
           </div>
         </div>
@@ -439,7 +439,7 @@ export default function AIConversationsPage() {
             </div>
           ) : conversations.length === 0 ? (
             <div className="text-center py-12 text-slate-500">
-              No conversations found. AI chat messages will appear here once users interact with the AI Analyst.
+              No conversations found. AI chat messages will appear here once users interact with the Pluxee Analyst.
             </div>
           ) : (
             <div className="divide-y divide-slate-100">

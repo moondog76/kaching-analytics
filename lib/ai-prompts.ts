@@ -1,5 +1,5 @@
 // =============================================================================
-// AI SYSTEM PROMPTS - Context-aware prompts for the AI Analyst
+// AI SYSTEM PROMPTS - Context-aware prompts for the Pluxee Analyst
 // =============================================================================
 
 import { AIContextMode } from '@/types/analytics'
@@ -106,8 +106,8 @@ export const AI_QUICK_RESPONSES = {
     `Unable to show ${metric} - fewer than 15 users in this segment (GDPR threshold). Try broadening your filters or selecting a longer date range.`,
 
   greeting: {
-    cashback: "Hi! I'm your KaChing AI Analyst. I can help optimize your cashback campaigns, analyze performance, and identify trends in your customer data. What would you like to explore?",
-    retail: "Hi! I'm your KaChing AI Analyst with full market intelligence access. I can help with competitive analysis, customer mobility patterns, market positioning, and strategic insights. What would you like to explore?"
+    cashback: "Hi! I'm your Pluxee Analyst. I can help optimize your cashback campaigns, analyze performance, and identify trends in your customer data. What would you like to explore?",
+    retail: "Hi! I'm your Pluxee Analyst with full market intelligence access. I can help with competitive analysis, customer mobility patterns, market positioning, and strategic insights. What would you like to explore?"
   },
 
   suggestedQuestions: {

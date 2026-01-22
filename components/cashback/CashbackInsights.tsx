@@ -232,6 +232,7 @@ export default function CashbackInsights({
               contextMode="cashback"
               merchantName={merchantName}
               merchantId={merchantId}
+              embedded={true}
             />
           </div>
         )}

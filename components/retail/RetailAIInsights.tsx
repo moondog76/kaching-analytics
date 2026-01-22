@@ -461,6 +461,7 @@ export default function RetailAIInsights({
           contextMode="retail"
           merchantName={merchantName}
           merchantId={merchantId}
+          embedded={true}
         />
       </div>
     </div>

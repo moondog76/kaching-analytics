@@ -16,6 +16,7 @@ interface AIChatProps {
   merchantName?: string
   merchantId?: string
   onUpgradeClick?: () => void
+  embedded?: boolean // When true, renders inline instead of as a floating widget
 }
 
 // Generate a unique session ID
@@ -27,7 +28,8 @@ export default function AIChat({
   contextMode = 'cashback',
   merchantName = 'Your Store',
   merchantId = 'unknown',
-  onUpgradeClick
+  onUpgradeClick,
+  embedded = false
 }: AIChatProps) {
   const initialGreeting = getInitialGreeting(contextMode)
 
@@ -203,6 +205,87 @@ export default function AIChat({
     return contextMode === 'retail' ? 'bg-pluxee-boldly-blue' : 'bg-pluxee-ultra-green'
   }
 
+  // Embedded mode - renders inline without fixed positioning
+  if (embedded) {
+    return (
+      <div className="flex flex-col h-[500px] border border-slate-200 rounded-xl overflow-hidden">
+        {/* Messages */}
+        <div className="flex-1 overflow-y-auto p-5 space-y-4 bg-slate-50">
+          {messages.map((msg, idx) => (
+            <div key={idx} className="animate-fade-in-up">
+              <div
+                className={`p-4 rounded-xl max-w-[85%] ${
+                  msg.role === 'user'
+                    ? 'bg-pluxee-deep-blue text-white ml-auto'
+                    : 'bg-white border border-slate-200 text-slate-700'
+                }`}
+              >
+                <div className="whitespace-pre-wrap">{msg.content}</div>
+
+                {/* Suggested follow-ups */}
+                {msg.role === 'assistant' && msg.suggested_followups && (
+                  <div className="mt-3 pt-3 border-t border-slate-200">
+                    <div className="text-xs text-slate-500 mb-2">Suggested questions:</div>
+                    <div className="flex flex-col gap-2">
+                      {msg.suggested_followups.map((followup, i) => (
+                        <button
+                          key={i}
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            handleSend(followup)
+                          }}
+                          className="text-left text-sm bg-slate-50 hover:bg-slate-100 border border-slate-200 text-pluxee-deep-blue rounded-lg px-3 py-2 transition-colors"
+                          disabled={isLoading}
+                        >
+                          {followup}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+              <div className="text-xs text-slate-400 mt-1 px-1">
+                {msg.timestamp.toLocaleTimeString()}
+              </div>
+            </div>
+          ))}
+          {isLoading && (
+            <div className="flex gap-2 p-4">
+              <div className="w-2 h-2 bg-pluxee-ultra-green rounded-full animate-bounce" style={{ animationDelay: '0s' }} />
+              <div className="w-2 h-2 bg-pluxee-ultra-green rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
+              <div className="w-2 h-2 bg-pluxee-ultra-green rounded-full animate-bounce" style={{ animationDelay: '0.4s' }} />
+            </div>
+          )}
+          <div ref={messagesEndRef} />
+        </div>
+
+        {/* Input */}
+        <form onSubmit={(e) => { e.preventDefault(); handleSend() }} className="p-4 border-t border-slate-200 bg-white">
+          <div className="flex gap-3">
+            <input
+              type="text"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder="Ask about your data..."
+              className="flex-1 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-pluxee-ultra-green focus:border-transparent"
+              disabled={isLoading}
+            />
+            <button
+              type="submit"
+              disabled={!input.trim() || isLoading}
+              className="bg-pluxee-ultra-green text-pluxee-deep-blue font-semibold px-5 py-3 rounded-xl hover:bg-pluxee-ultra-green/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+              </svg>
+            </button>
+          </div>
+        </form>
+      </div>
+    )
+  }
+
+  // Floating widget mode (default)
   return (
     <div
       className={`fixed bottom-8 right-8 w-[450px] bg-white border border-slate-200 rounded-2xl shadow-elevated flex flex-col transition-all duration-300 z-50 ${

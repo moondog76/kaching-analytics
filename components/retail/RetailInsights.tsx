@@ -2,11 +2,11 @@
 
 import { useState, useEffect } from 'react'
 import { AIContextMode, RetailInsightsData, MarketShareTimeSeries, MobilityMatrix as MobilityMatrixType, ChurnAnalysis, AgeDistributionBucket, TimeSeriesDataPoint, BarChartDataPoint } from '@/types/analytics'
-import AIChat from '@/components/AIChat'
 import MarketPosition from './MarketPosition'
 import CompetitiveDemographics from './CompetitiveDemographics'
 import MobilityMatrix from './MobilityMatrix'
 import ChurnIntelligence from './ChurnIntelligence'
+import RetailAIInsights from './RetailAIInsights'
 
 interface RetailInsightsProps {
   merchantId: string
@@ -148,7 +148,7 @@ export default function RetailInsights({
   merchantName,
   onContextChange
 }: RetailInsightsProps) {
-  const [activeSection, setActiveSection] = useState<'position' | 'demographics' | 'mobility' | 'churn'>('position')
+  const [activeSection, setActiveSection] = useState<'position' | 'demographics' | 'mobility' | 'churn' | 'ai'>('position')
   const [data, setData] = useState<ReturnType<typeof generateDemoRetailData> | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
@@ -233,6 +233,15 @@ export default function RetailInsights({
           </svg>
           Churn
         </button>
+        <button
+          onClick={() => setActiveSection('ai')}
+          className={`pluxee-tab ${activeSection === 'ai' ? 'pluxee-tab--active' : ''}`}
+        >
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+          </svg>
+          AI Insights
+        </button>
       </div>
 
       {/* Section Content */}
@@ -267,14 +276,20 @@ export default function RetailInsights({
             merchantName={merchantName}
           />
         )}
-      </div>
 
-      {/* AI Chat - Retail Context */}
-      <AIChat
-        contextMode="retail"
-        merchantName={merchantName}
-        merchantId={merchantId}
-      />
+        {activeSection === 'ai' && (
+          <RetailAIInsights
+            merchantId={merchantId}
+            merchantName={merchantName}
+            marketShareData={data.marketShareData}
+            mobilityMatrix={data.mobilityMatrix}
+            churnAnalysis={data.churnAnalysis}
+            ageDistribution={data.ageDistribution}
+            genderByCustomers={data.genderByCustomers}
+            merchants={data.merchants}
+          />
+        )}
+      </div>
     </div>
   )
 }

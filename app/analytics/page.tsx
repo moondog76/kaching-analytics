@@ -46,6 +46,12 @@ function AnalyticsContent() {
   } | null>(null)
   const [dateRange, setDateRange] = useState<DateRange>(getDefaultDateRange)
 
+  // Merchant selector state for admins
+  const [allMerchants, setAllMerchants] = useState<Array<{ id: string; name: string }>>([])
+  const [selectedMerchantId, setSelectedMerchantId] = useState<string>('')
+
+  const userRole = (session?.user as any)?.role
+
   // Get initial tab from URL params
   const tabParam = searchParams.get('tab')
   const initialTab: InsightTab = tabParam === 'retail' ? 'retail' : 'cashback'
@@ -75,12 +81,33 @@ function AnalyticsContent() {
     }
   }
 
+  // Load all merchants for admin selector
+  useEffect(() => {
+    if (userRole === 'super_admin' || userRole === 'admin') {
+      fetch('/api/admin/merchants')
+        .then(res => res.json())
+        .then(data => {
+          if (data.merchants) {
+            setAllMerchants(data.merchants)
+            // Auto-select first merchant if none selected
+            if (!selectedMerchantId && data.merchants.length > 0) {
+              setSelectedMerchantId(data.merchants[0].id)
+            }
+          }
+        })
+        .catch(console.error)
+    }
+  }, [userRole, selectedMerchantId])
+
   useEffect(() => {
     async function loadData() {
       try {
         const params = new URLSearchParams()
         params.set('startDate', format(dateRange.startDate, 'yyyy-MM-dd'))
         params.set('endDate', format(dateRange.endDate, 'yyyy-MM-dd'))
+        if (selectedMerchantId) {
+          params.set('merchantId', selectedMerchantId)
+        }
 
         const response = await fetch(`/api/merchant-data?${params.toString()}`)
         const data = await response.json()
@@ -90,7 +117,7 @@ function AnalyticsContent() {
       }
     }
     loadData()
-  }, [session, dateRange])
+  }, [session, dateRange, selectedMerchantId])
 
   const handleContextChange = useCallback((mode: AIContextMode) => {
     setAiContextMode(mode)
@@ -118,7 +145,7 @@ function AnalyticsContent() {
             <div className="flex items-center justify-between">
               {/* Left side: Logo + Merchant + Filters + Main Nav */}
               <div className="flex items-center">
-                {/* Pluxee Logo */}
+                {/* Pluxee Logo + Merchant Selector */}
                 <div className="flex items-center gap-3 pr-6 border-r border-slate-200">
                   <svg className="h-8 w-auto" viewBox="0 0 120 32" fill="none" xmlns="http://www.w3.org/2000/svg">
                     {/* Pluxee logomark - stylized P with gradient accent */}
@@ -128,9 +155,25 @@ function AnalyticsContent() {
                     {/* Pluxee wordmark */}
                     <text x="40" y="22" fontFamily="system-ui, -apple-system, sans-serif" fontSize="16" fontWeight="700" fill="#221C46">pluxee</text>
                   </svg>
-                  <span className="text-xl font-semibold text-pluxee-deep-blue">
-                    {data?.merchant?.merchant_name || "Analytics"}
-                  </span>
+                  {/* Merchant Selector for admins, or just name for regular users */}
+                  {(userRole === 'super_admin' || userRole === 'admin') && allMerchants.length > 0 ? (
+                    <select
+                      value={selectedMerchantId}
+                      onChange={(e) => setSelectedMerchantId(e.target.value)}
+                      className="text-xl font-semibold text-pluxee-deep-blue bg-transparent border-none focus:outline-none focus:ring-0 cursor-pointer pr-8 appearance-none"
+                      style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23221C46'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0 center', backgroundSize: '20px' }}
+                    >
+                      {allMerchants.map(merchant => (
+                        <option key={merchant.id} value={merchant.id}>
+                          {merchant.name}
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <span className="text-xl font-semibold text-pluxee-deep-blue">
+                      {data?.merchant?.merchant_name || "Analytics"}
+                    </span>
+                  )}
                 </div>
 
                 {/* Filters Group */}

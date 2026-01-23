@@ -29,6 +29,10 @@ export default function SettingsPage() {
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
 
+  // Admin merchant selector state
+  const [allMerchants, setAllMerchants] = useState<Array<{ id: string; name: string }>>([])
+  const [selectedMerchantId, setSelectedMerchantId] = useState<string>('')
+
   // Form state
   const [branding, setBranding] = useState({
     logo_url: '',
@@ -39,6 +43,14 @@ export default function SettingsPage() {
   const [webhookUrl, setWebhookUrl] = useState('')
   const [webhookEvents, setWebhookEvents] = useState<string[]>([])
   const [showApiKey, setShowApiKey] = useState(false)
+
+  const userRole = (session?.user as any)?.role
+  const isAdmin = userRole === 'super_admin' || userRole === 'admin'
+
+  // Get the effective merchant ID (user's own or admin-selected)
+  const effectiveMerchantId = isAdmin && selectedMerchantId
+    ? selectedMerchantId
+    : (session?.user as any)?.merchantId
 
   const availableWebhookEvents = [
     { id: 'anomaly.detected', label: 'Anomaly Detected', description: 'When unusual patterns are found' },
@@ -53,17 +65,39 @@ export default function SettingsPage() {
     }
   }, [status, router])
 
+  // Load merchants for admin selector
   useEffect(() => {
-    if (session?.user?.merchantId) {
+    if (status === 'authenticated' && isAdmin) {
+      fetch('/api/admin/merchants')
+        .then(res => res.json())
+        .then(data => {
+          if (data.merchants) {
+            setAllMerchants(data.merchants)
+            // Auto-select first merchant if user doesn't have one assigned
+            if (!session?.user?.merchantId && data.merchants.length > 0) {
+              setSelectedMerchantId(data.merchants[0].id)
+            }
+          }
+        })
+        .catch(err => console.error('Failed to load merchants:', err))
+    }
+  }, [status, isAdmin, session?.user?.merchantId])
+
+  useEffect(() => {
+    if (effectiveMerchantId) {
       fetchSettings()
-    } else if (status === 'authenticated' && !session?.user?.merchantId) {
+    } else if (status === 'authenticated' && !effectiveMerchantId && !isAdmin) {
       setLoading(false)
     }
-  }, [session, status])
+  }, [effectiveMerchantId, status, isAdmin])
 
   const fetchSettings = async () => {
+    if (!effectiveMerchantId) {
+      setLoading(false)
+      return
+    }
     try {
-      const res = await fetch(`/api/admin/merchants/${session?.user?.merchantId}/settings`)
+      const res = await fetch(`/api/admin/merchants/${effectiveMerchantId}/settings`)
       if (res.ok) {
         const data = await res.json()
         setSettings(data)
@@ -91,7 +125,7 @@ export default function SettingsPage() {
   const handleAction = async (action: string, data?: any) => {
     setSaving(true)
     try {
-      const res = await fetch(`/api/admin/merchants/${session?.user?.merchantId}/settings`, {
+      const res = await fetch(`/api/admin/merchants/${effectiveMerchantId}/settings`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action, ...data })
@@ -150,18 +184,43 @@ export default function SettingsPage() {
     )
   }
 
-  if (!session?.user?.merchantId) {
-    return (
-      <div className="min-h-screen bg-slate-50 p-8">
-        <div className="max-w-4xl mx-auto">
-          <div className="bg-white border border-slate-200 rounded-xl shadow-card p-6 text-center">
-            <h2 className="text-lg font-semibold text-slate-800 mb-2">No Merchant Assigned</h2>
-            <p className="text-slate-500">You need to be assigned to a merchant to access settings.</p>
+  // Show merchant selector for admins, or error for non-admins without merchant
+  if (!effectiveMerchantId) {
+    if (isAdmin && allMerchants.length === 0 && !loading) {
+      return (
+        <div className="min-h-screen bg-slate-50 p-8">
+          <div className="max-w-4xl mx-auto">
+            <div className="bg-white border border-slate-200 rounded-xl shadow-card p-6 text-center">
+              <h2 className="text-lg font-semibold text-slate-800 mb-2">No Merchants Available</h2>
+              <p className="text-slate-500">Create a merchant in the Admin panel first.</p>
+              <button
+                onClick={() => router.push('/admin')}
+                className="mt-4 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-medium transition-colors"
+              >
+                Go to Admin Panel
+              </button>
+            </div>
           </div>
         </div>
-      </div>
-    )
+      )
+    }
+
+    if (!isAdmin) {
+      return (
+        <div className="min-h-screen bg-slate-50 p-8">
+          <div className="max-w-4xl mx-auto">
+            <div className="bg-white border border-slate-200 rounded-xl shadow-card p-6 text-center">
+              <h2 className="text-lg font-semibold text-slate-800 mb-2">No Merchant Assigned</h2>
+              <p className="text-slate-500">You need to be assigned to a merchant to access settings.</p>
+            </div>
+          </div>
+        </div>
+      )
+    }
   }
+
+  // Get selected merchant name for display
+  const selectedMerchantName = allMerchants.find(m => m.id === effectiveMerchantId)?.name || settings?.name || 'Merchant'
 
   return (
     <div className="min-h-screen bg-slate-50 p-8">
@@ -170,7 +229,29 @@ export default function SettingsPage() {
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-2xl font-semibold text-slate-800">Settings</h1>
-            <p className="text-slate-500 mt-1">Manage your merchant configuration</p>
+            <p className="text-slate-500 mt-1">
+              {isAdmin && allMerchants.length > 0 ? (
+                <span className="flex items-center gap-2">
+                  Managing:
+                  <select
+                    value={effectiveMerchantId}
+                    onChange={(e) => {
+                      setSelectedMerchantId(e.target.value)
+                      setLoading(true)
+                    }}
+                    className="bg-white border border-slate-200 rounded-lg px-3 py-1 text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    {allMerchants.map((merchant) => (
+                      <option key={merchant.id} value={merchant.id}>
+                        {merchant.name}
+                      </option>
+                    ))}
+                  </select>
+                </span>
+              ) : (
+                `Manage ${selectedMerchantName} configuration`
+              )}
+            </p>
           </div>
           <button
             onClick={() => router.push('/')}

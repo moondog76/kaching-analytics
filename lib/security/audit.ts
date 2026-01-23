@@ -1,8 +1,6 @@
 // Audit Logging Service for Enterprise Security
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/db';
 import { headers } from 'next/headers';
-
-const prisma = new PrismaClient();
 
 // Action types for audit logging
 export type AuditAction = 

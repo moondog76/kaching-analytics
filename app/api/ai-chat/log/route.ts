@@ -26,8 +26,15 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const userId = (session.user as any).id
+    const user = session.user as { id: string; email?: string; role?: string; merchantId?: string }
+    const userId = user.id
     const userEmail = session.user.email
+
+    // Verify user has access to this merchant (prevent cross-tenant logging)
+    const isAdmin = user.role === 'super_admin' || user.role === 'admin'
+    if (!isAdmin && user.merchantId && user.merchantId !== merchantId) {
+      return NextResponse.json({ error: 'Forbidden - invalid merchant' }, { status: 403 })
+    }
 
     // Log each message
     const messageRecords = messages.map((msg: { role: string; content: string; timestamp?: string }) => ({

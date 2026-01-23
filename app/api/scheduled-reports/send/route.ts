@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth-options'
 import { prisma } from '@/lib/db'
 import { DataLoader } from '@/lib/data-loader'
 import { generateHTMLReport, getReportDateRange, calculateNextScheduledTime, ReportFrequency } from '@/lib/reports'
@@ -144,6 +146,12 @@ export async function POST(request: NextRequest) {
 // GET /api/scheduled-reports/send - Manual trigger with report ID
 export async function GET(request: NextRequest) {
   try {
+    // Require authentication for manual triggers
+    const session = await getServerSession(authOptions)
+    if (!session?.user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
     const { searchParams } = new URL(request.url)
     const reportId = searchParams.get('id')
 
@@ -160,6 +168,13 @@ export async function GET(request: NextRequest) {
 
     if (!report) {
       return NextResponse.json({ error: 'Report not found' }, { status: 404 })
+    }
+
+    // Verify user has access to this report's merchant
+    const user = session.user as { id: string; role?: string; merchantId?: string }
+    const isAdmin = user.role === 'super_admin' || user.role === 'admin'
+    if (!isAdmin && user.merchantId !== report.merchant_id) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
     // Get date range based on frequency

@@ -133,7 +133,7 @@ export default function AIChat({
     }
 
     try {
-      // Call AI API with context mode
+      // Call AI API with context mode and streaming enabled
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -142,6 +142,7 @@ export default function AIChat({
           contextMode,
           merchantName,
           merchantId,
+          stream: true,
           conversationHistory: messages.map(m => ({
             role: m.role,
             content: m.content,
@@ -150,30 +151,87 @@ export default function AIChat({
         })
       })
 
-      const data = await response.json()
+      // Check if response is JSON (fallback/error) or streaming
+      const contentType = response.headers.get('content-type') || ''
 
-      if (data.fallback) {
-        // Fallback response if no API key
-        const fallbackResponse: ChatMessage = {
+      if (contentType.includes('application/json')) {
+        // Non-streaming fallback response
+        const data = await response.json()
+
+        if (data.fallback) {
+          const fallbackResponse: ChatMessage = {
+            role: 'assistant',
+            content: data.response || generateFallbackResponse(query, contextMode),
+            timestamp: new Date(),
+            suggested_followups: data.suggested_followups || getFallbackFollowups(contextMode)
+          }
+          setMessages(prev => [...prev, fallbackResponse])
+          logMessages([userMessage, fallbackResponse])
+        } else {
+          const assistantMessage: ChatMessage = {
+            role: 'assistant',
+            content: data.response,
+            timestamp: new Date(),
+            suggested_followups: data.suggested_followups
+          }
+          setMessages(prev => [...prev, assistantMessage])
+          logMessages([userMessage, assistantMessage])
+        }
+      } else {
+        // Streaming response - read chunks and update UI progressively
+        const reader = response.body?.getReader()
+        if (!reader) throw new Error('No response body')
+
+        const decoder = new TextDecoder()
+        let accumulatedContent = ''
+
+        // Add empty assistant message that we'll update
+        const streamingMessage: ChatMessage = {
           role: 'assistant',
-          content: generateFallbackResponse(query, contextMode),
+          content: '',
+          timestamp: new Date()
+        }
+        setMessages(prev => [...prev, streamingMessage])
+
+        while (true) {
+          const { done, value } = await reader.read()
+          if (done) break
+
+          const chunk = decoder.decode(value, { stream: true })
+          accumulatedContent += chunk
+
+          // Update the last message with accumulated content
+          setMessages(prev => {
+            const updated = [...prev]
+            const lastIdx = updated.length - 1
+            if (lastIdx >= 0 && updated[lastIdx].role === 'assistant') {
+              updated[lastIdx] = {
+                ...updated[lastIdx],
+                content: accumulatedContent
+              }
+            }
+            return updated
+          })
+        }
+
+        // Final update with suggested followups
+        const finalMessage: ChatMessage = {
+          role: 'assistant',
+          content: accumulatedContent,
           timestamp: new Date(),
           suggested_followups: getFallbackFollowups(contextMode)
         }
-        setMessages(prev => [...prev, fallbackResponse])
-        // Log both messages
-        logMessages([userMessage, fallbackResponse])
-      } else {
-        // Real AI response
-        const assistantMessage: ChatMessage = {
-          role: 'assistant',
-          content: data.response,
-          timestamp: new Date(),
-          suggested_followups: data.suggested_followups
-        }
-        setMessages(prev => [...prev, assistantMessage])
-        // Log both messages
-        logMessages([userMessage, assistantMessage])
+        setMessages(prev => {
+          const updated = [...prev]
+          const lastIdx = updated.length - 1
+          if (lastIdx >= 0 && updated[lastIdx].role === 'assistant') {
+            updated[lastIdx] = finalMessage
+          }
+          return updated
+        })
+
+        // Log the completed messages
+        logMessages([userMessage, finalMessage])
       }
     } catch (error) {
       console.error('Chat error:', error)
@@ -183,7 +241,6 @@ export default function AIChat({
         timestamp: new Date()
       }
       setMessages(prev => [...prev, errorMessage])
-      // Still log the user message and error
       logMessages([userMessage, errorMessage])
     } finally {
       setIsLoading(false)
@@ -298,12 +355,12 @@ export default function AIChat({
         onClick={() => setIsMinimized(!isMinimized)}
       >
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-pluxee-ultra-green rounded-full flex items-center justify-center">
-            {/* Pluxee X icon */}
-            <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none">
-              <path d="M6 6L18 18M18 6L6 18" stroke="#221C46" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          </div>
+          {/* Pluxee P symbol */}
+          <svg className="w-10 h-10" viewBox="0 0 32 32" fill="none">
+            <rect width="32" height="32" rx="8" fill="#221C46"/>
+            <path d="M8 8h8c4.418 0 8 3.582 8 8s-3.582 8-8 8h-2v-6h2c1.105 0 2-.895 2-2s-.895-2-2-2h-2v10H8V8z" fill="#00EB5E"/>
+            <circle cx="22" cy="10" r="3" fill="#17CCF9"/>
+          </svg>
           <div>
             <div className="font-semibold text-pluxee-deep-blue">Pluxee Analyst</div>
             <div className="text-xs text-slate-500">
